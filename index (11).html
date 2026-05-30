@@ -3277,6 +3277,23 @@
         setState: function (s) {
           this.prevState = this.state;
           this.state = s;
+          // CrazyGames SDK v3 - gameplay tracking. Routing everything through
+          // setState means gameplayStart() fires when the player starts or
+          // resumes active play, and gameplayStop() fires on pause, level
+          // completed (VICTORY) and game over (GAME_OVER) or any exit to menus.
+          if (
+            window.CrazyGames &&
+            window.CrazyGames.SDK &&
+            window.CrazyGames.SDK.game
+          ) {
+            try {
+              if (s === "PLAYING" && this.prevState !== "PLAYING") {
+                window.CrazyGames.SDK.game.gameplayStart();
+              } else if (this.prevState === "PLAYING" && s !== "PLAYING") {
+                window.CrazyGames.SDK.game.gameplayStop();
+              }
+            } catch (e) {}
+          }
           document
             .getElementById("menuPanel")
             .classList.toggle("active", s === "MENU");
@@ -3521,56 +3538,75 @@
           if (typeof this.updateMissionsUI === "function") this.updateMissionsUI();
           if (typeof this.updateHUD === "function") this.updateHUD();
         },
-        triggerRewardedAd: function () {
-          var self = this;
-          self.isPaused = true;
-          if (self.audioCtx && self.audioCtx.state !== "closed") {
+        // ===== CrazyGames SDK v3 - ad helpers =====
+        // Mute + freeze the game while an ad is playing (called on adStarted).
+        _sdkAdMute: function () {
+          this.isPaused = true;
+          if (this.audioCtx && this.audioCtx.state === "running") {
             try {
-              self.audioCtx.suspend();
-            } catch (e) {
-              console.error("Error suspending audio:", e);
-            }
+              this.audioCtx.suspend();
+            } catch (e) {}
           }
-
-          var resumeGameAfterAd = function () {
-            self.isPaused = false;
-            if (self.audioCtx && self.audioCtx.state === "suspended") {
-              try {
-                self.audioCtx.resume();
-              } catch (e) {
-                console.error("Error resuming audio:", e);
-              }
-            }
+        },
+        // Unmute + resume the game once the ad finishes or errors out.
+        _sdkAdUnmute: function () {
+          this.isPaused = false;
+          if (this.audioCtx && this.audioCtx.state === "suspended") {
+            try {
+              this.audioCtx.resume();
+            } catch (e) {}
+          }
+        },
+        // Request an ad ("midgame" or "rewarded") using the official v3
+        // signature requestAd(type, { adStarted, adFinished, adError }).
+        // The game is muted on adStarted and unmuted on adFinished/adError so
+        // play always continues. onComplete(success) runs once; success is
+        // true only when the ad actually finished.
+        _sdkRequestAd: function (adType, onComplete) {
+          var self = this;
+          var settled = false;
+          var finish = function (success) {
+            if (settled) return;
+            settled = true;
+            self._sdkAdUnmute();
+            if (typeof onComplete === "function") onComplete(success);
           };
-
           if (
             window.CrazyGames &&
             window.CrazyGames.SDK &&
             window.CrazyGames.SDK.ad
           ) {
-            window.CrazyGames.SDK.ad.requestAd({
-              type: "rewarded",
-              callbacks: {
+            try {
+              window.CrazyGames.SDK.ad.requestAd(adType, {
                 adStarted: function () {
-                  console.log("Rewarded ad started");
+                  self._sdkAdMute();
                 },
                 adFinished: function () {
-                  console.log("Rewarded ad completed successfully. Awarding 50 Stardust");
-                  self.stardust += 50;
-                  self.save();
-                  self.updateUI();
-                  resumeGameAfterAd();
+                  finish(true);
                 },
                 adError: function (error) {
-                  console.error("Rewarded ad error:", error);
-                  resumeGameAfterAd();
+                  console.warn("CrazyGames ad error (" + adType + "):", error);
+                  finish(false);
                 },
-              },
-            });
+              });
+            } catch (e) {
+              console.warn("CrazyGames requestAd failed:", e);
+              finish(false);
+            }
           } else {
-            console.log("CrazyGames SDK not found. Skipping rewarded ad.");
-            resumeGameAfterAd();
+            // SDK unavailable (e.g. running locally) - continue without an ad.
+            finish(false);
           }
+        },
+        triggerRewardedAd: function () {
+          var self = this;
+          this._sdkRequestAd("rewarded", function (success) {
+            if (success) {
+              self.stardust += 50;
+              self.save();
+              self.updateUI();
+            }
+          });
         },
         updateMenuUI: function () {
           document.getElementById("menuStardustVal").textContent =
@@ -4031,58 +4067,22 @@
         },
         restartLevel: function () {
           var self = this;
-          self.isPaused = true;
-          if (self.audioCtx && self.audioCtx.state !== "closed") {
-            try {
-              self.audioCtx.suspend();
-            } catch (e) {
-              console.error("Error suspending audio:", e);
-            }
-          }
-
-          var proceedRestart = function () {
-            self.isPaused = false;
-            if (self.audioCtx && self.audioCtx.state === "suspended") {
-              try {
-                self.audioCtx.resume();
-              } catch (e) {
-                console.error("Error resuming audio:", e);
-              }
-            }
+          // Midgame ad on the level transition (retry), then restart the level.
+          this._sdkRequestAd("midgame", function () {
             self._skipNextCountdown = true;
             self.startLevel(self.currentLevel);
-          };
-
-          if (
-            window.CrazyGames &&
-            window.CrazyGames.SDK &&
-            window.CrazyGames.SDK.ad
-          ) {
-            window.CrazyGames.SDK.ad.requestAd({
-              type: "midgame",
-              callbacks: {
-                adStarted: function () {
-                  console.log("Midgame ad started");
-                },
-                adFinished: function () {
-                  console.log("Midgame ad finished");
-                  proceedRestart();
-                },
-                adError: function (error) {
-                  console.error("Midgame ad error:", error);
-                  proceedRestart();
-                },
-              },
-            });
-          } else {
-            console.log("CrazyGames SDK not found. Skipping midgame ad.");
-            proceedRestart();
-          }
+          });
         },
         nextLevel: function () {
-          if (this.currentLevel < this.levels.length - 1)
-            this.startLevel(this.currentLevel + 1);
-          else this.setState("MENU");
+          var self = this;
+          if (this.currentLevel < this.levels.length - 1) {
+            // Midgame ad on the level transition, then advance to the next level.
+            this._sdkRequestAd("midgame", function () {
+              self.startLevel(self.currentLevel + 1);
+            });
+          } else {
+            this.setState("MENU");
+          }
         },
         pause: function () {
           if (this.state === "PLAYING") this.setState("PAUSED");
