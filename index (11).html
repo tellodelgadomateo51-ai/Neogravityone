@@ -1116,6 +1116,14 @@
 
     <!-- CARGA DE LIBRERIAS Y SCRIPTS MODULARES -->
     <script src="pixi.min.js"></script>
+    <!-- Fallback: si pixi.min.js local no se cargó, usar CDN (PIXI v7, compatible con la API del juego) -->
+    <script>
+      if (typeof PIXI === "undefined") {
+        document.write(
+          '<script src="https://cdn.jsdelivr.net/npm/pixi.js@7.4.3/dist/pixi.min.js"><\/script>',
+        );
+      }
+    </script>
     <script>
       window.onerror = function (msg, url, lineNo, columnNo, error) {
         var errorText =
