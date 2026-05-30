@@ -954,6 +954,14 @@
         "
       ></div>
       <button
+        class="btn btn-gold"
+        id="doubleStardustBtn"
+        onclick="G.watchAdToDoubleStardust()"
+        style="border-color: #ffd84d; color: #ffd84d"
+      >
+        DOUBLE STARDUST 📺
+      </button>
+      <button
         class="btn btn-green btn-large"
         id="nextLevelBtn"
         onclick="G.nextLevel()"
@@ -3098,6 +3106,10 @@ void main(void)\r
         state: "MENU",
         prevState: "MENU",
         isPaused: false,
+        levelCompleted: false,
+        victoryDoubled: false,
+        lastLevelEarned: 0,
+        victoryBonusText: "",
         currentLevel: 0,
         shots: 0,
         starsCollected: 0,
@@ -4632,56 +4644,122 @@ void main(void)\r
           if (typeof this.updateMissionsUI === "function") this.updateMissionsUI();
           if (typeof this.updateHUD === "function") this.updateHUD();
         },
-        triggerRewardedAd: function () {
+        // Helper unificado para anuncios del SDK v3 de CrazyGames.
+        //   type        -> "midgame" (entre niveles) | "rewarded" (recompensa)
+        //   opts.onReward   -> se ejecuta SOLO si el anuncio se completa (recompensa otorgada)
+        //   opts.onComplete -> se ejecuta SIEMPRE al terminar (exito, error, sin relleno o sin SDK)
+        // El juego se pausa y silencia mientras el anuncio esta activo (requisito de CrazyGames)
+        // y nunca se queda bloqueado: si el anuncio falla, se continua igual.
+        playAd: function (type, opts) {
           var self = this;
-          self.isPaused = true;
-          if (self.audioCtx && self.audioCtx.state !== "closed") {
-            try {
-              self.audioCtx.suspend();
-            } catch (e) {
-              console.error("Error suspending audio:", e);
-            }
-          }
-
-          var resumeGameAfterAd = function () {
+          opts = opts || {};
+          var settled = false;
+          var finish = function (rewarded) {
+            if (settled) return;
+            settled = true;
             self.isPaused = false;
             if (self.audioCtx && self.audioCtx.state === "suspended") {
               try {
                 self.audioCtx.resume();
-              } catch (e) {
-                console.error("Error resuming audio:", e);
-              }
+              } catch (e) {}
             }
+            if (rewarded && typeof opts.onReward === "function")
+              opts.onReward();
+            if (typeof opts.onComplete === "function") opts.onComplete();
           };
+
+          self.isPaused = true;
+          if (self.audioCtx && self.audioCtx.state !== "closed") {
+            try {
+              self.audioCtx.suspend();
+            } catch (e) {}
+          }
 
           if (
             window.CrazyGames &&
             window.CrazyGames.SDK &&
             window.CrazyGames.SDK.ad
           ) {
-            window.CrazyGames.SDK.ad.requestAd({
-              type: "rewarded",
-              callbacks: {
+            try {
+              window.CrazyGames.SDK.ad.requestAd(type, {
                 adStarted: function () {
-                  console.log("Rewarded ad started");
+                  console.log(type + " ad started");
                 },
                 adFinished: function () {
-                  console.log("Rewarded ad completed successfully. Awarding 50 Stardust");
-                  self.stardust += 50;
-                  self.save();
-                  self.updateUI();
-                  resumeGameAfterAd();
+                  console.log(type + " ad finished");
+                  finish(true);
                 },
                 adError: function (error) {
-                  console.error("Rewarded ad error:", error);
-                  resumeGameAfterAd();
+                  console.warn(type + " ad error/unfilled:", error);
+                  finish(false);
                 },
-              },
-            });
+              });
+            } catch (e) {
+              console.warn("requestAd threw an exception:", e);
+              finish(false);
+            }
           } else {
-            console.log("CrazyGames SDK not found. Skipping rewarded ad.");
-            resumeGameAfterAd();
+            console.log(
+              "CrazyGames SDK not available. Skipping " + type + " ad.",
+            );
+            finish(false);
           }
+        },
+        // Anuncio rewarded de la tienda: +50 Stardust si el usuario ve el anuncio completo.
+        triggerRewardedAd: function () {
+          var self = this;
+          self.playAd("rewarded", {
+            onReward: function () {
+              self.stardust += 50;
+              if (self.stats) {
+                self.stats.stardustEarnedHistory =
+                  (self.stats.stardustEarnedHistory || 0) + 50;
+              }
+              self.save();
+              self.updateUI();
+            },
+          });
+        },
+        // Anuncio rewarded en la victoria: duplica el Stardust ganado en el nivel.
+        watchAdToDoubleStardust: function () {
+          var self = this;
+          if (self.victoryDoubled) return;
+          var btn = document.getElementById("doubleStardustBtn");
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = "LOADING AD...";
+          }
+          self.playAd("rewarded", {
+            onReward: function () {
+              self.victoryDoubled = true;
+              var extra = self.lastLevelEarned || 0;
+              self.stardust += extra;
+              if (self.stats) {
+                self.stats.stardustEarnedHistory =
+                  (self.stats.stardustEarnedHistory || 0) + extra;
+              }
+              self.save();
+              self.updateUI();
+              if (typeof self.updateHUD === "function") self.updateHUD();
+              var scoreEl = document.getElementById("victoryScore");
+              if (scoreEl) {
+                scoreEl.innerHTML =
+                  "EARNED: +" +
+                  extra * 2 +
+                  ' STARDUST <span style="color:#39ff88;font-weight:800">(x2!)</span>' +
+                  (self.victoryBonusText || "");
+              }
+              if (btn) {
+                btn.style.display = "none";
+              }
+            },
+            onComplete: function () {
+              if (btn && !self.victoryDoubled) {
+                btn.disabled = false;
+                btn.textContent = "DOUBLE STARDUST 📺";
+              }
+            },
+          });
         },
         updateMenuUI: function () {
           document.getElementById("menuStardustVal").textContent =
@@ -4863,6 +4941,8 @@ void main(void)\r
           this.trail = [];
           this.particles = [];
           this.confetti = [];
+          this.levelCompleted = false;
+          this.victoryDoubled = false;
           this.bursts = [];
           this.relaunchCooldown = 0;
           this.relaunchReadyFlash = 0;
@@ -5142,53 +5222,13 @@ void main(void)\r
         },
         restartLevel: function () {
           var self = this;
-          self.isPaused = true;
-          if (self.audioCtx && self.audioCtx.state !== "closed") {
-            try {
-              self.audioCtx.suspend();
-            } catch (e) {
-              console.error("Error suspending audio:", e);
-            }
-          }
-
-          var proceedRestart = function () {
-            self.isPaused = false;
-            if (self.audioCtx && self.audioCtx.state === "suspended") {
-              try {
-                self.audioCtx.resume();
-              } catch (e) {
-                console.error("Error resuming audio:", e);
-              }
-            }
-            self._skipNextCountdown = true;
-            self.startLevel(self.currentLevel);
-          };
-
-          if (
-            window.CrazyGames &&
-            window.CrazyGames.SDK &&
-            window.CrazyGames.SDK.ad
-          ) {
-            window.CrazyGames.SDK.ad.requestAd({
-              type: "midgame",
-              callbacks: {
-                adStarted: function () {
-                  console.log("Midgame ad started");
-                },
-                adFinished: function () {
-                  console.log("Midgame ad finished");
-                  proceedRestart();
-                },
-                adError: function (error) {
-                  console.error("Midgame ad error:", error);
-                  proceedRestart();
-                },
-              },
-            });
-          } else {
-            console.log("CrazyGames SDK not found. Skipping midgame ad.");
-            proceedRestart();
-          }
+          // Anuncio intersticial al reintentar; a prueba de fallos (continua aunque no haya anuncio).
+          self.playAd("midgame", {
+            onComplete: function () {
+              self._skipNextCountdown = true;
+              self.startLevel(self.currentLevel);
+            },
+          });
         },
         nextLevel: function () {
           if (this.currentLevel < this.levels.length - 1)
@@ -5222,6 +5262,8 @@ void main(void)\r
             "STARDUST: " + this.stardust;
         },
         completeLevel: function () {
+          if (this.levelCompleted) return;
+          this.levelCompleted = true;
           if (window.Tutorial && window.Tutorial.active) {
             window.Tutorial.complete();
           }
@@ -5256,8 +5298,10 @@ void main(void)\r
             this.bestScores[this.currentLevel] = this.starsCollected;
           if (this.currentLevel < this.levels.length - 1)
             this.unlockedLevels[this.currentLevel + 1] = true;
+          this.lastLevelEarned = total;
+          this.victoryBonusText = bonusText;
+          this.victoryDoubled = false;
           this.save();
-          this.sfx.victory();
           var starHtml = "";
           for (var i = 0; i < 3; i++)
             starHtml +=
@@ -5305,33 +5349,47 @@ void main(void)\r
               levelMsgs[this.currentLevel] ||
               "Spectacular shot! You keep overcoming challenges with amazing skill.";
           }
-          this.confetti = Array(80)
-            .fill()
-            .map(() => ({
-              x: this.vW * 0.5,
-              y: this.vH * 0.45,
-              vx: (Math.random() - 0.5) * 14,
-              vy: (Math.random() - 0.5) * 14 - 5,
-              color: ["#7df9ff", "#ff39b8", "#ffd84d", "#39ff88"][
-                Math.floor(Math.random() * 4)
-              ],
-              life: 1,
-              size: Math.random() * 7 + 3,
-              rot: Math.random() * 360,
-            }));
-          if (window.AndroidInterface) {
-            try {
-              window.AndroidInterface.showNotification(
-                "Level Completed! 🌟",
-                "You cleared '" +
-                  lv.name +
-                  "' with " +
-                  this.starsCollected +
-                  " stars.",
-              );
-            } catch (err) {}
-          }
-          this.setState("VICTORY");
+          var self = this;
+          var lvName = lv.name;
+          var showVictory = function () {
+            self.sfx.victory();
+            self.confetti = Array(80)
+              .fill()
+              .map(() => ({
+                x: self.vW * 0.5,
+                y: self.vH * 0.45,
+                vx: (Math.random() - 0.5) * 14,
+                vy: (Math.random() - 0.5) * 14 - 5,
+                color: ["#7df9ff", "#ff39b8", "#ffd84d", "#39ff88"][
+                  Math.floor(Math.random() * 4)
+                ],
+                life: 1,
+                size: Math.random() * 7 + 3,
+                rot: Math.random() * 360,
+              }));
+            var dbtn = document.getElementById("doubleStardustBtn");
+            if (dbtn) {
+              dbtn.disabled = false;
+              dbtn.style.display = "inline-flex";
+              dbtn.textContent = "DOUBLE STARDUST 📺";
+            }
+            if (window.AndroidInterface) {
+              try {
+                window.AndroidInterface.showNotification(
+                  "Level Completed! 🌟",
+                  "You cleared '" +
+                    lvName +
+                    "' with " +
+                    self.starsCollected +
+                    " stars.",
+                );
+              } catch (err) {}
+            }
+            self.setState("VICTORY");
+          };
+          // Anuncio intersticial (midgame) al pasar el nivel, ANTES de mostrar la victoria.
+          // A prueba de fallos: si no hay anuncio (error/sin relleno/sin SDK), se muestra igual.
+          this.playAd("midgame", { onComplete: showVictory });
         },
         die: function () {
           if (!this.orb || !this.orb.alive) return;
