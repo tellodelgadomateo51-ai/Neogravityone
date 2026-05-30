@@ -5652,8 +5652,53 @@
         },
       };
 
+      // Robust PixiJS loader. The game requires the global PIXI (PixiJS v7).
+      // If the local pixi.min.js is missing or fails to load, fall back to a
+      // CDN build so the game still boots instead of crashing with the fatal
+      // "PIXI is not defined" overlay that blocks the whole UI.
+      function ensurePixiLoaded() {
+        return new Promise(function (resolve) {
+          if (window.PIXI) {
+            resolve(true);
+            return;
+          }
+          var cdns = [
+            "https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js",
+            "https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.2/pixi.min.js",
+          ];
+          var i = 0;
+          var tryNext = function () {
+            if (window.PIXI) {
+              resolve(true);
+              return;
+            }
+            if (i >= cdns.length) {
+              resolve(false);
+              return;
+            }
+            var s = document.createElement("script");
+            s.src = cdns[i++];
+            s.onload = function () {
+              resolve(true);
+            };
+            s.onerror = tryNext;
+            document.head.appendChild(s);
+          };
+          tryNext();
+        });
+      }
+
       window.addEventListener("DOMContentLoaded", async () => {
-        G.init();
+        if (!window.PIXI) {
+          await ensurePixiLoaded();
+        }
+        // Guard init so a rendering-engine failure never leaves the whole UI
+        // blocked behind the fatal error overlay.
+        try {
+          G.init();
+        } catch (error) {
+          console.error("Game init failed:", error);
+        }
         if (window.Tutorial) window.Tutorial.install();
 
         if (window.CrazyGames && window.CrazyGames.SDK) {
