@@ -1118,6 +1118,22 @@
     <script src="pixi.min.js"></script>
     <script>
       window.onerror = function (msg, url, lineNo, columnNo, error) {
+        // Ignore opaque cross-origin "Script error." events. They are reported
+        // by third-party scripts served from another domain - here the
+        // CrazyGames SDK - which throws harmless internal errors when the game
+        // runs outside the CrazyGames platform (local file, mobile browser,
+        // GitHub preview, etc.). The browser strips all details for security
+        // (msg = "Script error.", no url, line 0), so there is nothing
+        // actionable and they must not trigger the fatal diagnostic overlay.
+        if (
+          (typeof msg === "string" && msg.indexOf("Script error") !== -1) ||
+          (!url && !error)
+        ) {
+          if (window.console && console.warn) {
+            console.warn("Ignored cross-origin script error:", msg);
+          }
+          return true;
+        }
         var errorText =
           "JavaScript Error:\n" +
           msg +
