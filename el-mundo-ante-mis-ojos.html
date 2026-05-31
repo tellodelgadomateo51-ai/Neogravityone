@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>El mundo ante mis ojos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #e9e4ff;
+        --ink-soft: #b9b2d6;
+        --accent: #8ab6ff;
+        --accent-2: #ff8ab6;
+        --gold: #ffd98a;
+        --box: rgba(10, 9, 24, 0.82);
+        --box-border: #5b6bb5;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #05030d;
+        color: var(--ink);
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+        cursor: default;
+      }
+
+      /* Pixel-perfect rendering */
+      canvas,
+      img {
+        image-rendering: pixelated;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: crisp-edges;
+      }
+
+      #stage {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        display: block;
+      }
+
+      /* Subtle scanline / CRT vignette overlay for high-detail pixel feel */
+      .crt {
+        position: absolute;
+        inset: 0;
+        z-index: 60;
+        pointer-events: none;
+        background:
+          radial-gradient(120% 120% at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.55) 100%);
+        mix-blend-mode: multiply;
+      }
+      .crt::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.035) 0px,
+          rgba(255, 255, 255, 0.035) 1px,
+          rgba(0, 0, 0, 0) 2px,
+          rgba(0, 0, 0, 0) 4px
+        );
+        opacity: 0.5;
+      }
+
+      .layer {
+        position: absolute;
+        inset: 0;
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 1.4s ease;
+      }
+      .layer.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* ---------- TITLE SCREEN ---------- */
+      #title {
+        gap: 6vh;
+      }
+      .title-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 22px;
+        animation: floaty 6s ease-in-out infinite;
+      }
+      @keyframes floaty {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .game-title {
+        font-family: "Press Start 2P", monospace;
+        font-size: clamp(18px, 5.2vw, 52px);
+        line-height: 1.55;
+        letter-spacing: 1px;
+        color: var(--ink);
+        text-shadow:
+          0 0 2px #fff,
+          3px 3px 0 #2a2350,
+          6px 6px 0 rgba(0, 0, 0, 0.45),
+          0 0 26px rgba(138, 182, 255, 0.55);
+        max-width: 14ch;
+      }
+      .game-title .l2 {
+        color: var(--accent);
+        display: block;
+      }
+      .subtitle {
+        font-family: "VT323", monospace;
+        font-size: clamp(16px, 2.6vw, 24px);
+        color: var(--ink-soft);
+        letter-spacing: 2px;
+        opacity: 0.9;
+      }
+
+      .play-btn {
+        font-family: "Press Start 2P", monospace;
+        font-size: clamp(12px, 2.4vw, 20px);
+        color: #0a0820;
+        background: linear-gradient(180deg, #cfe0ff, #8ab6ff);
+        border: 0;
+        padding: 18px 42px;
+        cursor: pointer;
+        position: relative;
+        letter-spacing: 2px;
+        box-shadow:
+          0 0 0 4px #05030d,
+          0 0 0 8px #8ab6ff,
+          0 10px 0 #2a3a78,
+          0 10px 26px rgba(138, 182, 255, 0.45);
+        transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.2s ease;
+        animation: pulse 2.4s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          filter: brightness(1);
+        }
+        50% {
+          filter: brightness(1.18);
+        }
+      }
+      .play-btn:hover {
+        transform: translateY(-3px);
+      }
+      .play-btn:active {
+        transform: translateY(4px);
+        box-shadow:
+          0 0 0 4px #05030d,
+          0 0 0 8px #8ab6ff,
+          0 4px 0 #2a3a78;
+      }
+      .hint {
+        font-family: "VT323", monospace;
+        font-size: clamp(14px, 2vw, 20px);
+        color: var(--ink-soft);
+        opacity: 0;
+        margin-top: 8px;
+        animation: hintFade 3s ease 1.2s forwards;
+      }
+      @keyframes hintFade {
+        to {
+          opacity: 0.7;
+        }
+      }
+
+      /* ---------- CENTERED MESSAGE (intro) ---------- */
+      #intro .centered {
+        font-family: "VT323", monospace;
+        font-size: clamp(22px, 4.4vw, 46px);
+        line-height: 1.5;
+        color: var(--ink);
+        max-width: 22ch;
+        text-shadow: 0 0 16px rgba(138, 182, 255, 0.35), 2px 2px 0 #1c1838;
+        min-height: 3em;
+      }
+
+      /* ---------- ACT TITLE ---------- */
+      #act .act-title {
+        font-family: "Press Start 2P", monospace;
+        font-size: clamp(22px, 6vw, 60px);
+        color: var(--gold);
+        letter-spacing: 4px;
+        text-shadow:
+          3px 3px 0 #3a2a10,
+          0 0 28px rgba(255, 217, 138, 0.6);
+        transform: scale(0.92);
+        opacity: 0;
+        transition: opacity 1.2s ease, transform 1.6s ease;
+      }
+      #act .act-title.in {
+        opacity: 1;
+        transform: scale(1);
+      }
+      #act .act-sub {
+        font-family: "VT323", monospace;
+        font-size: clamp(14px, 2.4vw, 22px);
+        color: var(--ink-soft);
+        margin-top: 18px;
+        letter-spacing: 3px;
+        opacity: 0;
+        transition: opacity 1.6s ease 0.6s;
+      }
+      #act .act-sub.in {
+        opacity: 0.85;
+      }
+
+      /* ---------- DIALOGUE (Act 1 letter) ---------- */
+      #dialogue {
+        justify-content: flex-end;
+        padding: 0;
+      }
+      .dialog-box {
+        position: relative;
+        width: min(900px, 92vw);
+        margin: 0 auto 5vh auto;
+        background: var(--box);
+        border: 4px solid var(--box-border);
+        border-radius: 6px;
+        padding: 26px 30px 30px;
+        box-shadow:
+          0 0 0 4px #05030d,
+          0 0 0 6px rgba(91, 107, 181, 0.35),
+          0 14px 40px rgba(0, 0, 0, 0.6),
+          inset 0 0 30px rgba(40, 60, 130, 0.18);
+        backdrop-filter: blur(2px);
+      }
+      /* little pixel "corners" */
+      .dialog-box::before,
+      .dialog-box::after {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: var(--accent);
+        top: -7px;
+      }
+      .dialog-box::before {
+        left: -7px;
+      }
+      .dialog-box::after {
+        right: -7px;
+      }
+
+      .speaker {
+        font-family: "Press Start 2P", monospace;
+        font-size: clamp(9px, 1.7vw, 13px);
+        color: var(--accent-2);
+        margin-bottom: 16px;
+        letter-spacing: 1px;
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+      }
+      .dialog-text {
+        font-family: "VT323", monospace;
+        font-size: clamp(20px, 3.1vw, 30px);
+        line-height: 1.48;
+        color: var(--ink);
+        text-align: left;
+        min-height: 4.4em;
+        text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
+        word-wrap: break-word;
+      }
+      .dialog-text.fade-out {
+        opacity: 0;
+        transition: opacity 0.9s ease;
+      }
+      .dialog-text.fade-in {
+        opacity: 1;
+        transition: opacity 0.6s ease;
+      }
+      .caret {
+        display: inline-block;
+        width: 0.62em;
+        height: 1.05em;
+        margin-left: 2px;
+        background: var(--accent);
+        transform: translateY(0.18em);
+        animation: blink 0.9s steps(2, start) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .dialog-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 18px;
+      }
+      .progress {
+        font-family: "VT323", monospace;
+        font-size: clamp(13px, 2vw, 18px);
+        color: var(--ink-soft);
+        letter-spacing: 1px;
+        opacity: 0.7;
+      }
+
+      /* ---------- CONTINUE BUTTON (todos los paneles) ---------- */
+      .continue-btn {
+        font-family: "Press Start 2P", monospace;
+        font-size: clamp(10px, 2vw, 15px);
+        color: #0a0820;
+        background: linear-gradient(180deg, #ffe7a8, #ffd98a);
+        border: 0;
+        padding: 14px 28px;
+        cursor: pointer;
+        letter-spacing: 1px;
+        box-shadow:
+          0 0 0 3px #05030d,
+          0 0 0 6px #ffd98a,
+          0 7px 0 #8a6a1f,
+          0 7px 20px rgba(255, 217, 138, 0.4);
+        /* oculto por defecto; aparece con .show de forma fluida */
+        opacity: 0;
+        transform: translateY(14px);
+        pointer-events: none;
+        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+          box-shadow 0.12s ease;
+      }
+      .continue-btn.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+        animation: cbPulse 2.2s ease-in-out infinite;
+      }
+      .continue-btn.small {
+        font-size: clamp(9px, 1.7vw, 12px);
+        padding: 11px 20px;
+        box-shadow:
+          0 0 0 2px #05030d,
+          0 0 0 4px #ffd98a,
+          0 5px 0 #8a6a1f;
+      }
+      .continue-btn:hover {
+        filter: brightness(1.08);
+      }
+      .continue-btn:active {
+        transform: translateY(5px);
+        box-shadow:
+          0 0 0 3px #05030d,
+          0 0 0 6px #ffd98a,
+          0 2px 0 #8a6a1f;
+      }
+      @keyframes cbPulse {
+        0%,
+        100% {
+          filter: brightness(1);
+        }
+        50% {
+          filter: brightness(1.14);
+        }
+      }
+
+      /* contenedor del intro para alinear texto + boton */
+      .intro-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6vh;
+        max-width: 100%;
+      }
+
+      /* pista sutil para saltar la animacion de escritura */
+      .skip-hint {
+        position: absolute;
+        bottom: 16px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-family: "VT323", monospace;
+        font-size: clamp(13px, 2vw, 18px);
+        color: var(--ink-soft);
+        opacity: 0;
+        z-index: 40;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+      }
+      .skip-hint.show {
+        opacity: 0.55;
+      }
+
+      /* ---------- ENDING ---------- */
+      #ending .end-text {
+        font-family: "VT323", monospace;
+        font-size: clamp(22px, 4vw, 40px);
+        color: var(--gold);
+        line-height: 1.5;
+        max-width: 20ch;
+        text-shadow: 0 0 20px rgba(255, 217, 138, 0.5);
+      }
+      #ending .end-sub {
+        font-family: "VT323", monospace;
+        font-size: clamp(15px, 2.2vw, 22px);
+        color: var(--ink-soft);
+        margin-top: 26px;
+        letter-spacing: 1px;
+      }
+      .restart-btn {
+        font-family: "Press Start 2P", monospace;
+        font-size: clamp(10px, 2vw, 14px);
+        margin-top: 40px;
+        color: var(--ink);
+        background: transparent;
+        border: 3px solid var(--accent);
+        padding: 14px 26px;
+        cursor: pointer;
+        letter-spacing: 1px;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+      .restart-btn:hover {
+        background: var(--accent);
+        color: #05030d;
+      }
+
+      /* ---------- TOP-RIGHT CONTROLS ---------- */
+      .controls {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 50;
+        display: flex;
+        gap: 10px;
+      }
+      .ctrl-btn {
+        font-family: "Press Start 2P", monospace;
+        font-size: 12px;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--ink);
+        background: rgba(10, 9, 24, 0.6);
+        border: 2px solid var(--box-border);
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+      }
+      .ctrl-btn:hover {
+        background: rgba(40, 50, 100, 0.8);
+      }
+      .ctrl-btn:active {
+        transform: scale(0.92);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <canvas id="bg"></canvas>
+
+      <div class="controls">
+        <div class="ctrl-btn" id="soundBtn" title="Sonido">♪</div>
+        <div class="ctrl-btn" id="fsBtn" title="Pantalla completa">⛶</div>
+      </div>
+
+      <!-- TITLE -->
+      <div class="layer" id="title">
+        <div class="title-wrap">
+          <div class="game-title">EL MUNDO<span class="l2">ANTE MIS OJOS</span></div>
+          <div class="subtitle">— una historia en pixeles —</div>
+        </div>
+        <button class="play-btn" id="playBtn">JUGAR</button>
+        <div class="hint">Pulsa JUGAR para comenzar</div>
+      </div>
+
+      <!-- INTRO MESSAGE -->
+      <div class="layer" id="intro">
+        <div class="intro-inner">
+          <div class="centered" id="introText"></div>
+          <button class="continue-btn" id="introContinue">CONTINUAR ▶</button>
+        </div>
+      </div>
+
+      <!-- ACT TITLE -->
+      <div class="layer" id="act">
+        <div class="act-title" id="actTitle">ACTO 1</div>
+        <div class="act-sub" id="actSub"></div>
+        <button class="continue-btn" id="actContinue">CONTINUAR ▶</button>
+      </div>
+
+      <!-- DIALOGUE / LETTER -->
+      <div class="layer" id="dialogue">
+        <div class="dialog-box">
+          <div class="speaker">❧ Un mensaje del corazon</div>
+          <div class="dialog-text" id="dialogText"></div>
+          <div class="dialog-footer">
+            <div class="progress" id="progress"></div>
+            <button class="continue-btn small" id="dialogContinue">CONTINUAR ▶</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENDING -->
+      <div class="layer" id="ending">
+        <div class="end-text" id="endText">Fin del Acto 1</div>
+        <div class="end-sub">"pero eso se vera."</div>
+        <button class="restart-btn" id="restartBtn">VOLVER AL INICIO</button>
+      </div>
+
+      <div class="skip-hint" id="skipHint">toca el texto para mostrarlo completo</div>
+
+      <div class="crt"></div>
+    </div>
+
+    <script>
+      /* =====================================================================
+         EL MUNDO ANTE MIS OJOS  —  visual novel en pixel art
+         Un solo archivo. Fondo animado en canvas + sistema de dialogos.
+      ===================================================================== */
+
+      "use strict";
+
+      // ---------- CANVAS BACKGROUND ----------
+      const canvas = document.getElementById("bg");
+      const ctx = canvas.getContext("2d");
+      let W = 0,
+        H = 0,
+        DPR = 1;
+
+      function resize() {
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        // clientWidth/clientHeight son de SOLO LECTURA: usamos las dimensiones
+        // de la ventana para las variables logicas y dejamos que el CSS
+        // (width:100%/height:100%) controle el tamano visual del canvas.
+        W = window.innerWidth;
+        H = window.innerHeight;
+        // El tamano del buffer de dibujo si se puede asignar:
+        canvas.width = Math.floor(W * DPR);
+        canvas.height = Math.floor(H * DPR);
+        // Forzamos el tamano CSS por si el navegador no aplica el 100% a tiempo:
+        canvas.style.width = W + "px";
+        canvas.style.height = H + "px";
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        buildStars();
+        buildHills();
+      }
+      window.addEventListener("resize", resize);
+
+      // Twinkling pixel stars
+      let stars = [];
+      function buildStars() {
+        stars = [];
+        const count = Math.floor((W * H) / 5200);
+        for (let i = 0; i < count; i++) {
+          stars.push({
+            x: Math.random() * W,
+            y: Math.random() * H * 0.82,
+            s: Math.random() < 0.85 ? 2 : 3,
+            base: 0.25 + Math.random() * 0.6,
+            tw: Math.random() * Math.PI * 2,
+            tws: 0.6 + Math.random() * 1.8,
+          });
+        }
+      }
+
+      // Layered pixel hills (parallax silhouette)
+      let hills = [];
+      function buildHills() {
+        hills = [];
+        const layers = [
+          { color: "#0d1030", amp: 0.10, base: 0.78, step: 26, speed: 0.0 },
+          { color: "#141a45", amp: 0.13, base: 0.85, step: 22, speed: 0.0 },
+          { color: "#1b245c", amp: 0.16, base: 0.92, step: 18, speed: 0.0 },
+        ];
+        for (const L of layers) {
+          const pts = [];
+          let seed = Math.random() * 1000;
+          for (let x = -L.step; x <= W + L.step; x += L.step) {
+            const n =
+              Math.sin((x + seed) * 0.006) * 0.6 +
+              Math.sin((x + seed) * 0.013) * 0.4;
+            pts.push({ x, y: H * L.base - n * H * L.amp });
+          }
+          hills.push({ ...L, pts });
+        }
+      }
+
+      // Floating dust / petals
+      const motes = [];
+      function buildMotes() {
+        motes.length = 0;
+        for (let i = 0; i < 46; i++) {
+          motes.push(spawnMote(true));
+        }
+      }
+      function spawnMote(initial) {
+        return {
+          x: Math.random() * (W || window.innerWidth),
+          y: initial
+            ? Math.random() * (H || window.innerHeight)
+            : -10,
+          size: 2 + Math.floor(Math.random() * 3),
+          vy: 0.15 + Math.random() * 0.5,
+          vx: -0.25 + Math.random() * 0.5,
+          drift: Math.random() * Math.PI * 2,
+          ds: 0.4 + Math.random() * 0.9,
+          a: 0.15 + Math.random() * 0.5,
+          warm: Math.random() < 0.45,
+        };
+      }
+
+      // Shooting star (rare)
+      let shoot = null;
+      function maybeShoot() {
+        if (shoot || Math.random() > 0.004) return;
+        const sx = Math.random() * W * 0.7;
+        shoot = { x: sx, y: Math.random() * H * 0.35, vx: 6 + Math.random() * 4, vy: 2 + Math.random() * 2, life: 1 };
+      }
+
+      // Moon
+      const moon = { r: 0 };
+
+      let t = 0;
+      function draw() {
+        t += 0.016;
+
+        // Sky gradient
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, "#0a0820");
+        g.addColorStop(0.45, "#120b2e");
+        g.addColorStop(0.8, "#241038");
+        g.addColorStop(1, "#3a163f");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+
+        // Moon (pixel-ish glow)
+        const mx = W * 0.78,
+          my = H * 0.22;
+        moon.r = Math.min(W, H) * 0.07;
+        const glow = ctx.createRadialGradient(mx, my, moon.r * 0.4, mx, my, moon.r * 4);
+        glow.addColorStop(0, "rgba(255, 240, 210, 0.45)");
+        glow.addColorStop(1, "rgba(255, 240, 210, 0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(mx - moon.r * 4, my - moon.r * 4, moon.r * 8, moon.r * 8);
+        ctx.fillStyle = "#fdf3da";
+        ctx.beginPath();
+        ctx.arc(mx, my, moon.r, 0, Math.PI * 2);
+        ctx.fill();
+        // craters
+        ctx.fillStyle = "rgba(210,196,160,0.5)";
+        ctx.beginPath();
+        ctx.arc(mx - moon.r * 0.3, my - moon.r * 0.2, moon.r * 0.18, 0, Math.PI * 2);
+        ctx.arc(mx + moon.r * 0.25, my + moon.r * 0.3, moon.r * 0.13, 0, Math.PI * 2);
+        ctx.arc(mx + moon.r * 0.1, my - moon.r * 0.35, moon.r * 0.09, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Stars
+        for (const st of stars) {
+          const tw = st.base + Math.sin(t * st.tws + st.tw) * 0.35;
+          ctx.fillStyle = `rgba(235,238,255,${Math.max(0, tw)})`;
+          ctx.fillRect(st.x | 0, st.y | 0, st.s, st.s);
+        }
+
+        // Shooting star
+        maybeShoot();
+        if (shoot) {
+          ctx.strokeStyle = `rgba(255,255,255,${shoot.life})`;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(shoot.x, shoot.y);
+          ctx.lineTo(shoot.x - shoot.vx * 6, shoot.y - shoot.vy * 6);
+          ctx.stroke();
+          shoot.x += shoot.vx;
+          shoot.y += shoot.vy;
+          shoot.life -= 0.012;
+          if (shoot.life <= 0 || shoot.x > W) shoot = null;
+        }
+
+        // Hills (back to front)
+        for (const L of hills) {
+          ctx.fillStyle = L.color;
+          ctx.beginPath();
+          ctx.moveTo(0, H);
+          for (const p of L.pts) ctx.lineTo(p.x, p.y);
+          ctx.lineTo(W, H);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Reflection-ish ground shimmer
+        const gg = ctx.createLinearGradient(0, H * 0.9, 0, H);
+        gg.addColorStop(0, "rgba(90,60,120,0)");
+        gg.addColorStop(1, "rgba(120,80,150,0.25)");
+        ctx.fillStyle = gg;
+        ctx.fillRect(0, H * 0.9, W, H * 0.1);
+
+        // Motes
+        for (const m of motes) {
+          m.drift += 0.01 * m.ds;
+          m.y += m.vy;
+          m.x += m.vx + Math.sin(m.drift) * 0.4;
+          if (m.y > H + 8 || m.x < -8 || m.x > W + 8) {
+            Object.assign(m, spawnMote(false));
+          }
+          ctx.fillStyle = m.warm
+            ? `rgba(255,200,170,${m.a})`
+            : `rgba(180,200,255,${m.a})`;
+          ctx.fillRect(m.x | 0, m.y | 0, m.size, m.size);
+        }
+
+        requestAnimationFrame(draw);
+      }
+
+      resize();
+      buildMotes();
+      draw();
+
+      // ---------- STORY DATA ----------
+      const INTRO_MESSAGE =
+        "Si estas leyendo este mensaje, te pido que lo leas hasta el final.";
+
+      // Acto 1 — dividido en fragmentos para una lectura comoda y precisa.
+      const ACT1 = [
+        "Nuestra relacion esta rota, tan rota como mi corazon, como el corazon que fue moldeado a traves de dolor y sufrimiento.",
+        "¿Por que tenias que romper tanto mi corazon? Como si fuera un juguete sin valor... como si fuera un chiste gracioso y ofensivo.",
+        "¿Sabes algo? Talvez no me hablas, talvez no me piensas, talvez no quieres saber mas de mi. Pero aun asi quiero que sepas que les hablo bien a mis amigos de ti.",
+        "Les digo que a la unica mujer a la que he amado con todo mi ser y mi alma es a ti, que mis sentimientos son devotos a ti.",
+        "Aun sabiendo que todo el dolor que siento es tu culpa, por siempre hacerme dano, por siempre lastimarme, por saber el tipo de chico que soy.",
+        "Por saber que soy sensible, que lloro, que me duele mucho ser tratado asi por ti. Pero aun asi, hablo bien de ti.",
+        "Se que a ti esto no te importa ni un carajo, pero todo lo que hice lo hice por amor, porque te amaba.",
+        "Porque el mundo en el que vivia era un mundo en el que tu y yo siempre estariamos por siempre. Talvez no perfecto, pero si a tu lado, y eso lo hacia suficiente.",
+        "Incluso hace poco le conte a una ex amiga sobre ti, fue hoy, y es gracioso jaja. \"Migajero\", \"tonto\", \"te esta utilizando\".",
+        "Incluso con todo eso sigo creyendo que tu me sigues queriendo de la misma forma que te quiero yo. Pero se que mi gran deseo de amor que siento por ti no es correspondido.",
+        "Se que no hablamos, se que ya me bloqueaste. Pero si sabes que esto me duele, ¿por que sigues regresando a mi? ¿Por que me desbloqueas? ¿Por que me das esperanzas?",
+        "Si sabes que te amo y eres todo lo que quiero. Pero entiendo que no todo lo que quieres lo puedes tener. Se que la mujer que amo ya no existe, pero te quiero a ti.",
+        "Aunque ya no seas la mujer que mas amo. Claro, solia querer eso. En mi cabeza, en mi mente, a veces se llenan de pensamientos.",
+        "Y la verdad es que no puedo confiar en ti, realmente no puedo confiar en tus palabras aunque digas que si. No te conozco, no se quien eres, la verdad no lo quiero saber, pero si quiero que estes bien.",
+        "Ni siquiera puedo saber si de verdad piensas con la cabeza con cada accion que tomas. Claro, como a mi, un ser tan tonto y estupido, no le importa eso porque ama demasiado a la senorita esta.",
+        "Ni siquiera puedo saber si piensas en otro chico, si hablas con otro chico, o si ya besaste a otro chico. Quien sabe, y ya no eres virgen.",
+        "Se que por mas amor que te tenga, por mas carino y tiempo que te espere, tu nunca podras corresponder a mi corazon, y esta bien.",
+        "Lo que esta mal es que me busques... ¿para? Exacto, ¿para? Para nada. Para hacerme sentir mal, solo para eso.",
+        "Realmente te amo tanto que la skin mas cara de mi juego se llama Rossy. Vaya, ¿sabes? ¿Tu harias eso? No, porque ni siquiera sabes que mrd es codigo.",
+        "Realmente tengo ego, no me gusta rogar, no me gusta esperar nada de la gente, no me importa tener muchos amigos, no me importa esa mrd. Realmente solo me seguias importando tu, creelo o no, me da igual.",
+        "Pero realmente a ti te he amado tanto que mi ego, que mi yo rebelde, simplemente se hacia a un lado. Se que ya no eres mi chica, ni mi nada, solo desconocidos que se conocen.",
+        "Pero quiero aconsejarte algo: no tomes, no te drogues, no vayas a fiestas, no te regales, y nunca te dejes influenciar por amistades asi.",
+        "Si lo que mi yo pasado y mi yo futuro querian decirte algo, seria lo anterior que dije hace un momento.",
+        "Tu talvez me olvides, pero yo no puedo correr con la misma suerte. Yo talvez pueda estar marcado para siempre, yo talvez caiga en la desesperacion. Mi yo pasado pensaria eso.",
+        "Pero mi yo actual nunca se rinde, aunque caiga, se vuelve a levantar.",
+        "Lo que tengo que decirte ahora es que... eres libre, Rossy. La promesa de que me amaras ya esta rota.",
+        "Ya puedes amar a cualquier chico que quieras, besarlo, abrazarlo, vivir una vida con el. Pero borrame para siempre, no quiero ser una segunda opcion para ti nunca.",
+        "Pero si aun asi, despues de todo lo que he dicho, quieres que esta promesa no se rompa, dilo. Hablame claro, escribeme, mejora, se una chica en la que yo pueda confiar y dame esperanzas.",
+        "Ya te he buscado muchas veces, ¿no es asi? Mi ultimo mensaje a ti es transmitido en este juego, asi que eres libre de elegir lo que quieras, o de paso no hacer nada e ignorar todo esto.",
+        "¿Sabes por que digo todo esto? Porque realmente confio en que tu no haras esto. Realmente conoces el tipo de hombre que soy.",
+        "Y el tipo de hombre que, si tuviera que pelear con 10 hombres para proteger a la mujer que ama, lo haria.",
+        "Te amo, aunque decir este 'te amo' me hace sentir asqueroso, porque a la persona a la que se lo digo no se lo merece. Pero aun asi, te amo.",
+        "Asi que, en mi nombre, prometo que esta sera la ultima vez que hago esto por la chica que amo.",
+        "En mi nombre prometo que nunca jamas volvere a joderle la vida con mis mensajes, y que no la pensare para que no me atormenten mis malos pensamientos... pero eso se vera.",
+      ];
+
+      // ---------- SCREEN HELPERS ----------
+      const layers = {
+        title: document.getElementById("title"),
+        intro: document.getElementById("intro"),
+        act: document.getElementById("act"),
+        dialogue: document.getElementById("dialogue"),
+        ending: document.getElementById("ending"),
+      };
+
+      function showLayer(name) {
+        for (const k in layers) layers[k].classList.remove("show");
+        if (name) layers[name].classList.add("show");
+      }
+
+      // Typewriter that respects a comfortable reading speed.
+      // Returns an object with a skip() to instantly finish.
+      function typeWriter(el, text, opts = {}) {
+        const speed = opts.speed ?? 42; // ms per character (comodo)
+        const caret = opts.caret !== false;
+        let i = 0;
+        let done = false;
+        el.textContent = "";
+        const caretEl = document.createElement("span");
+        caretEl.className = "caret";
+
+        function render() {
+          el.textContent = text.slice(0, i);
+          if (caret && !done) el.appendChild(caretEl);
+        }
+
+        let timer = null;
+        function step() {
+          if (i >= text.length) {
+            finish();
+            return;
+          }
+          i++;
+          render();
+          // pequena pausa extra en signos de puntuacion para ritmo natural
+          const ch = text[i - 1];
+          let delay = speed;
+          if (ch === "," || ch === ";" || ch === ":") delay = speed + 220;
+          else if (ch === "." || ch === "?" || ch === "!" || ch === "…")
+            delay = speed + 380;
+          if (audio.on && (i % 2 === 0)) audio.blip();
+          timer = setTimeout(step, delay);
+        }
+
+        function finish() {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          i = text.length;
+          el.textContent = text;
+          if (caret) el.appendChild(caretEl);
+          if (opts.onDone) opts.onDone();
+        }
+
+        render();
+        timer = setTimeout(step, 260);
+
+        return {
+          skip: finish,
+          isDone: () => done,
+        };
+      }
+
+      // ---------- SIMPLE AMBIENT AUDIO (WebAudio, sin archivos) ----------
+      const audio = {
+        ctx: null,
+        on: false,
+        pad: null,
+        gain: null,
+        init() {
+          if (this.ctx) return;
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          this.ctx = new AC();
+          this.gain = this.ctx.createGain();
+          this.gain.gain.value = 0.0;
+          this.gain.connect(this.ctx.destination);
+        },
+        startPad() {
+          if (!this.ctx || this.pad) return;
+          const notes = [146.83, 220.0, 277.18]; // re, la, do# suave
+          this.pad = notes.map((f, idx) => {
+            const o = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            o.type = "sine";
+            o.frequency.value = f;
+            g.gain.value = idx === 0 ? 0.6 : 0.35;
+            // leve vibrato
+            const lfo = this.ctx.createOscillator();
+            const lg = this.ctx.createGain();
+            lfo.frequency.value = 0.08 + idx * 0.03;
+            lg.gain.value = 1.2;
+            lfo.connect(lg);
+            lg.connect(o.frequency);
+            o.connect(g);
+            g.connect(this.gain);
+            o.start();
+            lfo.start();
+            return { o, lfo };
+          });
+        },
+        blip() {
+          if (!this.ctx || !this.on) return;
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.type = "square";
+          o.frequency.value = 620 + Math.random() * 80;
+          g.gain.value = 0.0;
+          o.connect(g);
+          g.connect(this.gain);
+          const now = this.ctx.currentTime;
+          g.gain.setValueAtTime(0.0, now);
+          g.gain.linearRampToValueAtTime(0.012, now + 0.005);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+          o.start(now);
+          o.stop(now + 0.07);
+        },
+        toggle() {
+          this.init();
+          if (!this.ctx) return false;
+          if (this.ctx.state === "suspended") this.ctx.resume();
+          this.on = !this.on;
+          if (this.on) {
+            this.startPad();
+            this.gain.gain.linearRampToValueAtTime(0.05, this.ctx.currentTime + 1.2);
+          } else {
+            this.gain.gain.linearRampToValueAtTime(0.0, this.ctx.currentTime + 0.6);
+          }
+          return this.on;
+        },
+      };
+
+      // ---------- GAME STATE MACHINE ----------
+      const dialogText = document.getElementById("dialogText");
+      const introText = document.getElementById("introText");
+      const progressEl = document.getElementById("progress");
+      const actTitle = document.getElementById("actTitle");
+      const actSub = document.getElementById("actSub");
+      const skipHint = document.getElementById("skipHint");
+      const introContinue = document.getElementById("introContinue");
+      const actContinue = document.getElementById("actContinue");
+      const dialogContinue = document.getElementById("dialogContinue");
+
+      let state = "title";
+      let typer = null;
+      let actIndex = 0;
+      let busy = false; // bloquea avances durante transiciones
+
+      function show(el) {
+        if (el) el.classList.add("show");
+      }
+      function hide(el) {
+        if (el) el.classList.remove("show");
+      }
+      // Completa el texto al instante si aun se esta escribiendo.
+      function skipTyping() {
+        if (typer && !typer.isDone()) {
+          typer.skip();
+          return true;
+        }
+        return false;
+      }
+
+      function startGame() {
+        if (audio.ctx === null) audio.init();
+        // arranca musica suave automaticamente al jugar (se puede silenciar)
+        if (!audio.on) {
+          const r = audio.toggle();
+          soundBtn.textContent = r ? "♪" : "✕";
+        }
+        showLayer("intro");
+        state = "intro";
+        busy = true;
+        hide(introContinue);
+        introText.style.transition = "";
+        introText.style.opacity = "1";
+        introText.textContent = "";
+        setTimeout(() => {
+          show(skipHint);
+          typer = typeWriter(introText, INTRO_MESSAGE, {
+            speed: 52,
+            onDone: () => {
+              hide(skipHint);
+              busy = false;
+              show(introContinue); // aparece el boton CONTINUAR
+            },
+          });
+        }, 900);
+      }
+
+      function introToAct() {
+        if (busy) return;
+        busy = true;
+        hide(introContinue);
+        // desvanecer el texto del intro lentamente y de forma fluida
+        introText.style.transition = "opacity 1.6s ease";
+        introText.style.opacity = "0";
+        setTimeout(() => {
+          showLayer("act");
+          introText.style.opacity = "1";
+          introText.textContent = "";
+          hide(actContinue);
+          // animar entrada del titulo del acto
+          requestAnimationFrame(() => {
+            actTitle.classList.add("in");
+            actSub.classList.add("in");
+          });
+          state = "act";
+          setTimeout(() => {
+            show(actContinue); // boton CONTINUAR del acto
+            busy = false;
+          }, 1700);
+        }, 1700);
+      }
+
+      function actToDialogue() {
+        if (busy) return;
+        busy = true;
+        hide(actContinue);
+        actTitle.classList.remove("in");
+        actSub.classList.remove("in");
+        setTimeout(() => {
+          showLayer("dialogue");
+          state = "dialogue";
+          actIndex = 0;
+          setTimeout(() => {
+            showDialogLine();
+            busy = false;
+          }, 800);
+        }, 1100);
+      }
+
+      function showDialogLine() {
+        hide(dialogContinue);
+        dialogText.classList.remove("fade-out");
+        dialogText.classList.add("fade-in");
+        progressEl.textContent = actIndex + 1 + " / " + ACT1.length;
+        show(skipHint);
+        typer = typeWriter(dialogText, ACT1[actIndex], {
+          speed: 40,
+          onDone: () => {
+            hide(skipHint);
+            show(dialogContinue); // boton CONTINUAR en cada panel
+          },
+        });
+      }
+
+      function nextDialogLine() {
+        if (busy) return;
+        busy = true;
+        hide(dialogContinue);
+        // desvanecer suavemente las palabras anteriores antes del siguiente panel
+        dialogText.classList.remove("fade-in");
+        dialogText.classList.add("fade-out");
+        setTimeout(() => {
+          actIndex++;
+          if (actIndex >= ACT1.length) {
+            goEnding();
+            return;
+          }
+          dialogText.textContent = "";
+          showDialogLine();
+          busy = false;
+        }, 950);
+      }
+
+      function goEnding() {
+        showLayer("ending");
+        state = "ending";
+        hide(skipHint);
+        busy = false;
+      }
+
+      // ---------- INPUT: avanzar / saltar ----------
+      // Avanza segun el estado actual (usado por botones y teclado).
+      function advance() {
+        if (busy) return;
+        if (state === "intro") {
+          if (skipTyping()) return;
+          introToAct();
+        } else if (state === "act") {
+          actToDialogue();
+        } else if (state === "dialogue") {
+          if (skipTyping()) return;
+          nextDialogLine();
+        }
+      }
+
+      // Tocar el texto mientras se escribe lo muestra completo al instante.
+      introText.addEventListener("click", () => {
+        if (state === "intro") skipTyping();
+      });
+      dialogText.addEventListener("click", () => {
+        if (state === "dialogue") skipTyping();
+      });
+
+      // Teclado (escritorio): Espacio / Enter / Flecha derecha avanzan.
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowRight") {
+          if (state === "title" || state === "ending") return;
+          e.preventDefault();
+          advance();
+        }
+      });
+
+      // ---------- BUTTONS ----------
+      const playBtn = document.getElementById("playBtn");
+      const restartBtn = document.getElementById("restartBtn");
+      const soundBtn = document.getElementById("soundBtn");
+      const fsBtn = document.getElementById("fsBtn");
+
+      playBtn.addEventListener("click", () => {
+        if (busy) return;
+        startGame();
+      });
+
+      // Botones CONTINUAR de cada panel (avance profesional y explicito)
+      introContinue.addEventListener("click", () => {
+        if (state === "intro") introToAct();
+      });
+      actContinue.addEventListener("click", () => {
+        if (state === "act") actToDialogue();
+      });
+      dialogContinue.addEventListener("click", () => {
+        if (state === "dialogue") nextDialogLine();
+      });
+
+      restartBtn.addEventListener("click", () => {
+        // detener cualquier escritura en curso
+        if (typer && !typer.isDone()) typer.skip();
+        typer = null;
+        // reset visual completo
+        actTitle.classList.remove("in");
+        actSub.classList.remove("in");
+        dialogText.textContent = "";
+        dialogText.classList.remove("fade-out", "fade-in");
+        introText.textContent = "";
+        introText.style.transition = "";
+        introText.style.opacity = "1";
+        hide(introContinue);
+        hide(actContinue);
+        hide(dialogContinue);
+        hide(skipHint);
+        actIndex = 0;
+        busy = false;
+        state = "title";
+        showLayer("title");
+      });
+
+      soundBtn.addEventListener("click", () => {
+        const r = audio.toggle();
+        soundBtn.textContent = r ? "♪" : "✕";
+      });
+
+      fsBtn.addEventListener("click", () => {
+        try {
+          const el = document.documentElement;
+          if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            const req = el.requestFullscreen || el.webkitRequestFullscreen;
+            if (req) req.call(el);
+          } else {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen;
+            if (exit) exit.call(document);
+          }
+        } catch (e) {
+          /* pantalla completa no soportada: ignorar sin romper el juego */
+        }
+      });
+
+      // ---------- BOOT ----------
+      window.addEventListener("load", () => {
+        showLayer("title");
+      });
+      // por si 'load' ya paso
+      showLayer("title");
+    </script>
+  </body>
+</html>
