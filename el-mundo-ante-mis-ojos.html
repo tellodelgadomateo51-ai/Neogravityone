@@ -335,25 +335,89 @@
         letter-spacing: 1px;
         opacity: 0.7;
       }
-      .next-indicator {
+
+      /* ---------- CONTINUE BUTTON (todos los paneles) ---------- */
+      .continue-btn {
         font-family: "Press Start 2P", monospace;
-        font-size: clamp(9px, 1.6vw, 12px);
-        color: var(--gold);
+        font-size: clamp(10px, 2vw, 15px);
+        color: #0a0820;
+        background: linear-gradient(180deg, #ffe7a8, #ffd98a);
+        border: 0;
+        padding: 14px 28px;
+        cursor: pointer;
+        letter-spacing: 1px;
+        box-shadow:
+          0 0 0 3px #05030d,
+          0 0 0 6px #ffd98a,
+          0 7px 0 #8a6a1f,
+          0 7px 20px rgba(255, 217, 138, 0.4);
+        /* oculto por defecto; aparece con .show de forma fluida */
         opacity: 0;
-        transition: opacity 0.3s ease;
-        animation: bob 1.1s ease-in-out infinite;
+        transform: translateY(14px);
+        pointer-events: none;
+        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+          box-shadow 0.12s ease;
       }
-      .next-indicator.show {
+      .continue-btn.show {
         opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+        animation: cbPulse 2.2s ease-in-out infinite;
       }
-      @keyframes bob {
+      .continue-btn.small {
+        font-size: clamp(9px, 1.7vw, 12px);
+        padding: 11px 20px;
+        box-shadow:
+          0 0 0 2px #05030d,
+          0 0 0 4px #ffd98a,
+          0 5px 0 #8a6a1f;
+      }
+      .continue-btn:hover {
+        filter: brightness(1.08);
+      }
+      .continue-btn:active {
+        transform: translateY(5px);
+        box-shadow:
+          0 0 0 3px #05030d,
+          0 0 0 6px #ffd98a,
+          0 2px 0 #8a6a1f;
+      }
+      @keyframes cbPulse {
         0%,
         100% {
-          transform: translateX(0);
+          filter: brightness(1);
         }
         50% {
-          transform: translateX(6px);
+          filter: brightness(1.14);
         }
+      }
+
+      /* contenedor del intro para alinear texto + boton */
+      .intro-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6vh;
+        max-width: 100%;
+      }
+
+      /* pista sutil para saltar la animacion de escritura */
+      .skip-hint {
+        position: absolute;
+        bottom: 16px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-family: "VT323", monospace;
+        font-size: clamp(13px, 2vw, 18px);
+        color: var(--ink-soft);
+        opacity: 0;
+        z-index: 40;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+      }
+      .skip-hint.show {
+        opacity: 0.55;
       }
 
       /* ---------- ENDING ---------- */
@@ -418,14 +482,6 @@
       .ctrl-btn:active {
         transform: scale(0.92);
       }
-
-      /* tap-to-continue overlay area on dialogue/intro */
-      .tap-zone {
-        position: absolute;
-        inset: 0;
-        z-index: 20;
-        cursor: pointer;
-      }
     </style>
   </head>
   <body>
@@ -436,9 +492,6 @@
         <div class="ctrl-btn" id="soundBtn" title="Sonido">♪</div>
         <div class="ctrl-btn" id="fsBtn" title="Pantalla completa">⛶</div>
       </div>
-
-      <!-- click anywhere to advance during the story -->
-      <div class="tap-zone" id="tapZone" style="display: none"></div>
 
       <!-- TITLE -->
       <div class="layer" id="title">
@@ -452,13 +505,17 @@
 
       <!-- INTRO MESSAGE -->
       <div class="layer" id="intro">
-        <div class="centered" id="introText"></div>
+        <div class="intro-inner">
+          <div class="centered" id="introText"></div>
+          <button class="continue-btn" id="introContinue">CONTINUAR ▶</button>
+        </div>
       </div>
 
       <!-- ACT TITLE -->
       <div class="layer" id="act">
         <div class="act-title" id="actTitle">ACTO 1</div>
-        <div class="act-sub" id="actSub">toca para continuar</div>
+        <div class="act-sub" id="actSub"></div>
+        <button class="continue-btn" id="actContinue">CONTINUAR ▶</button>
       </div>
 
       <!-- DIALOGUE / LETTER -->
@@ -468,7 +525,7 @@
           <div class="dialog-text" id="dialogText"></div>
           <div class="dialog-footer">
             <div class="progress" id="progress"></div>
-            <div class="next-indicator" id="nextInd">continuar ▶</div>
+            <button class="continue-btn small" id="dialogContinue">CONTINUAR ▶</button>
           </div>
         </div>
       </div>
@@ -479,6 +536,8 @@
         <div class="end-sub">"pero eso se vera."</div>
         <button class="restart-btn" id="restartBtn">VOLVER AL INICIO</button>
       </div>
+
+      <div class="skip-hint" id="skipHint">toca el texto para mostrarlo completo</div>
 
       <div class="crt"></div>
     </div>
@@ -736,7 +795,6 @@
         dialogue: document.getElementById("dialogue"),
         ending: document.getElementById("ending"),
       };
-      const tapZone = document.getElementById("tapZone");
 
       function showLayer(name) {
         for (const k in layers) layers[k].classList.remove("show");
@@ -869,14 +927,32 @@
       const dialogText = document.getElementById("dialogText");
       const introText = document.getElementById("introText");
       const progressEl = document.getElementById("progress");
-      const nextInd = document.getElementById("nextInd");
       const actTitle = document.getElementById("actTitle");
       const actSub = document.getElementById("actSub");
+      const skipHint = document.getElementById("skipHint");
+      const introContinue = document.getElementById("introContinue");
+      const actContinue = document.getElementById("actContinue");
+      const dialogContinue = document.getElementById("dialogContinue");
 
       let state = "title";
       let typer = null;
       let actIndex = 0;
       let busy = false; // bloquea avances durante transiciones
+
+      function show(el) {
+        if (el) el.classList.add("show");
+      }
+      function hide(el) {
+        if (el) el.classList.remove("show");
+      }
+      // Completa el texto al instante si aun se esta escribiendo.
+      function skipTyping() {
+        if (typer && !typer.isDone()) {
+          typer.skip();
+          return true;
+        }
+        return false;
+      }
 
       function startGame() {
         if (audio.ctx === null) audio.init();
@@ -886,21 +962,29 @@
           soundBtn.textContent = r ? "♪" : "✕";
         }
         showLayer("intro");
-        tapZone.style.display = "block";
         state = "intro";
         busy = true;
+        hide(introContinue);
+        introText.style.transition = "";
+        introText.style.opacity = "1";
+        introText.textContent = "";
         setTimeout(() => {
+          show(skipHint);
           typer = typeWriter(introText, INTRO_MESSAGE, {
             speed: 52,
             onDone: () => {
+              hide(skipHint);
               busy = false;
+              show(introContinue); // aparece el boton CONTINUAR
             },
           });
         }, 900);
       }
 
       function introToAct() {
+        if (busy) return;
         busy = true;
+        hide(introContinue);
         // desvanecer el texto del intro lentamente y de forma fluida
         introText.style.transition = "opacity 1.6s ease";
         introText.style.opacity = "0";
@@ -908,6 +992,7 @@
           showLayer("act");
           introText.style.opacity = "1";
           introText.textContent = "";
+          hide(actContinue);
           // animar entrada del titulo del acto
           requestAnimationFrame(() => {
             actTitle.classList.add("in");
@@ -915,13 +1000,16 @@
           });
           state = "act";
           setTimeout(() => {
+            show(actContinue); // boton CONTINUAR del acto
             busy = false;
-          }, 1800);
+          }, 1700);
         }, 1700);
       }
 
       function actToDialogue() {
+        if (busy) return;
         busy = true;
+        hide(actContinue);
         actTitle.classList.remove("in");
         actSub.classList.remove("in");
         setTimeout(() => {
@@ -931,26 +1019,29 @@
           setTimeout(() => {
             showDialogLine();
             busy = false;
-          }, 900);
-        }, 1200);
+          }, 800);
+        }, 1100);
       }
 
       function showDialogLine() {
-        nextInd.classList.remove("show");
+        hide(dialogContinue);
         dialogText.classList.remove("fade-out");
         dialogText.classList.add("fade-in");
         progressEl.textContent = actIndex + 1 + " / " + ACT1.length;
+        show(skipHint);
         typer = typeWriter(dialogText, ACT1[actIndex], {
           speed: 40,
           onDone: () => {
-            nextInd.classList.add("show");
+            hide(skipHint);
+            show(dialogContinue); // boton CONTINUAR en cada panel
           },
         });
       }
 
       function nextDialogLine() {
+        if (busy) return;
         busy = true;
-        nextInd.classList.remove("show");
+        hide(dialogContinue);
         // desvanecer suavemente las palabras anteriores antes del siguiente panel
         dialogText.classList.remove("fade-in");
         dialogText.classList.add("fade-out");
@@ -969,38 +1060,38 @@
       function goEnding() {
         showLayer("ending");
         state = "ending";
-        tapZone.style.display = "none";
+        hide(skipHint);
         busy = false;
       }
 
-      // ---------- INPUT: avanzar la historia ----------
+      // ---------- INPUT: avanzar / saltar ----------
+      // Avanza segun el estado actual (usado por botones y teclado).
       function advance() {
         if (busy) return;
-
         if (state === "intro") {
-          if (typer && !typer.isDone()) {
-            typer.skip(); // completa el texto al instante
-            busy = false;
-            return;
-          }
+          if (skipTyping()) return;
           introToAct();
         } else if (state === "act") {
           actToDialogue();
         } else if (state === "dialogue") {
-          if (typer && !typer.isDone()) {
-            typer.skip();
-            nextInd.classList.add("show");
-            return;
-          }
+          if (skipTyping()) return;
           nextDialogLine();
         }
       }
 
-      tapZone.addEventListener("click", advance);
+      // Tocar el texto mientras se escribe lo muestra completo al instante.
+      introText.addEventListener("click", () => {
+        if (state === "intro") skipTyping();
+      });
+      dialogText.addEventListener("click", () => {
+        if (state === "dialogue") skipTyping();
+      });
+
+      // Teclado (escritorio): Espacio / Enter / Flecha derecha avanzan.
       window.addEventListener("keydown", (e) => {
         if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowRight") {
+          if (state === "title" || state === "ending") return;
           e.preventDefault();
-          if (state === "title") return;
           advance();
         }
       });
@@ -1016,6 +1107,17 @@
         startGame();
       });
 
+      // Botones CONTINUAR de cada panel (avance profesional y explicito)
+      introContinue.addEventListener("click", () => {
+        if (state === "intro") introToAct();
+      });
+      actContinue.addEventListener("click", () => {
+        if (state === "act") actToDialogue();
+      });
+      dialogContinue.addEventListener("click", () => {
+        if (state === "dialogue") nextDialogLine();
+      });
+
       restartBtn.addEventListener("click", () => {
         // detener cualquier escritura en curso
         if (typer && !typer.isDone()) typer.skip();
@@ -1028,8 +1130,10 @@
         introText.textContent = "";
         introText.style.transition = "";
         introText.style.opacity = "1";
-        nextInd.classList.remove("show");
-        tapZone.style.display = "none";
+        hide(introContinue);
+        hide(actContinue);
+        hide(dialogContinue);
+        hide(skipHint);
         actIndex = 0;
         busy = false;
         state = "title";
