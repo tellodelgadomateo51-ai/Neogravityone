@@ -500,10 +500,17 @@
 
       function resize() {
         DPR = Math.min(window.devicePixelRatio || 1, 2);
-        W = canvas.clientWidth = window.innerWidth;
-        H = canvas.clientHeight = window.innerHeight;
+        // clientWidth/clientHeight son de SOLO LECTURA: usamos las dimensiones
+        // de la ventana para las variables logicas y dejamos que el CSS
+        // (width:100%/height:100%) controle el tamano visual del canvas.
+        W = window.innerWidth;
+        H = window.innerHeight;
+        // El tamano del buffer de dibujo si se puede asignar:
         canvas.width = Math.floor(W * DPR);
         canvas.height = Math.floor(H * DPR);
+        // Forzamos el tamano CSS por si el navegador no aplica el 100% a tiempo:
+        canvas.style.width = W + "px";
+        canvas.style.height = H + "px";
         ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
         buildStars();
         buildHills();
@@ -1010,12 +1017,21 @@
       });
 
       restartBtn.addEventListener("click", () => {
-        // reset visual
+        // detener cualquier escritura en curso
+        if (typer && !typer.isDone()) typer.skip();
+        typer = null;
+        // reset visual completo
         actTitle.classList.remove("in");
         actSub.classList.remove("in");
         dialogText.textContent = "";
+        dialogText.classList.remove("fade-out", "fade-in");
         introText.textContent = "";
+        introText.style.transition = "";
+        introText.style.opacity = "1";
+        nextInd.classList.remove("show");
+        tapZone.style.display = "none";
         actIndex = 0;
+        busy = false;
         state = "title";
         showLayer("title");
       });
@@ -1026,11 +1042,17 @@
       });
 
       fsBtn.addEventListener("click", () => {
-        const el = document.documentElement;
-        if (!document.fullscreenElement) {
-          (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
-        } else {
-          (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+        try {
+          const el = document.documentElement;
+          if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            const req = el.requestFullscreen || el.webkitRequestFullscreen;
+            if (req) req.call(el);
+          } else {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen;
+            if (exit) exit.call(document);
+          }
+        } catch (e) {
+          /* pantalla completa no soportada: ignorar sin romper el juego */
         }
       });
 
