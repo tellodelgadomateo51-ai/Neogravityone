@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Aetheris — Advanced Frameworks & Automation Architecture. Playbook digital de alta gama para creadores, desarrolladores y optimizadores de rendimiento."
+    />
+    <title>Aetheris — Advanced Frameworks &amp; Automation Architecture</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #06070b;
+        --bg-soft: #0b0d14;
+        --panel: #0e1119;
+        --panel-2: #11141d;
+        --line: rgba(255, 255, 255, 0.07);
+        --line-strong: rgba(255, 255, 255, 0.14);
+        --txt: #e6e9f0;
+        --txt-dim: #9aa3b2;
+        --txt-faint: #6b7585;
+        --accent: #7df9ff;
+        --accent-2: #b6a4ff;
+        --gold: #ffd166;
+        --green: #4ade80;
+        --red: #ff5d6c;
+        --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+          Consolas, monospace;
+        --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --display: "Space Grotesk", "Inter", system-ui, sans-serif;
+        --maxw: 880px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        background-image: radial-gradient(
+            900px 500px at 80% -10%,
+            rgba(125, 249, 255, 0.06),
+            transparent 60%
+          ),
+          radial-gradient(
+            800px 500px at 0% 0%,
+            rgba(182, 164, 255, 0.05),
+            transparent 55%
+          );
+        color: var(--txt);
+        font-family: var(--sans);
+        font-size: 17px;
+        line-height: 1.72;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        letter-spacing: 0.1px;
+      }
+
+      ::selection {
+        background: rgba(125, 249, 255, 0.25);
+        color: #fff;
+      }
+
+      .wrap {
+        max-width: var(--maxw);
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ---------- TOP PROGRESS BAR ---------- */
+      #progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        z-index: 200;
+        box-shadow: 0 0 14px rgba(125, 249, 255, 0.5);
+      }
+
+      /* ---------- HERO ---------- */
+      header.hero {
+        position: relative;
+        padding: 120px 0 70px;
+        border-bottom: 1px solid var(--line);
+        overflow: hidden;
+      }
+      header.hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(
+            var(--line) 1px,
+            transparent 1px
+          ),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 46px 46px;
+        mask-image: radial-gradient(
+          circle at 50% 35%,
+          #000 0%,
+          transparent 72%
+        );
+        opacity: 0.5;
+        z-index: 0;
+      }
+      .hero .wrap {
+        position: relative;
+        z-index: 1;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid rgba(125, 249, 255, 0.3);
+        padding: 7px 14px;
+        border-radius: 100px;
+        background: rgba(125, 249, 255, 0.05);
+        margin-bottom: 28px;
+      }
+      .eyebrow .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 10px var(--accent);
+      }
+      h1.title {
+        font-family: var(--display);
+        font-size: clamp(46px, 9vw, 104px);
+        font-weight: 700;
+        line-height: 0.94;
+        letter-spacing: -2px;
+        margin-bottom: 18px;
+        background: linear-gradient(180deg, #ffffff 30%, #8b94a6 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .subtitle {
+        font-family: var(--mono);
+        font-size: clamp(13px, 2.4vw, 18px);
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: var(--txt-dim);
+        margin-bottom: 36px;
+      }
+      .hero-lead {
+        max-width: 640px;
+        color: var(--txt-dim);
+        font-size: 18px;
+      }
+      .hero-lead strong {
+        color: var(--txt);
+        font-weight: 600;
+      }
+      .axiom0 {
+        margin-top: 40px;
+        padding: 18px 22px;
+        border-left: 3px solid var(--accent);
+        background: linear-gradient(
+          90deg,
+          rgba(125, 249, 255, 0.07),
+          transparent
+        );
+        border-radius: 0 10px 10px 0;
+        font-family: var(--display);
+        font-size: 18px;
+        color: #fff;
+      }
+      .axiom0 b {
+        color: var(--accent);
+        letter-spacing: 1px;
+      }
+
+      /* ---------- MODULE / SECTION ---------- */
+      section.module {
+        padding: 80px 0 20px;
+      }
+      .module-head {
+        margin-bottom: 14px;
+      }
+      .module-tag {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 3px;
+        color: var(--accent-2);
+        text-transform: uppercase;
+      }
+      h2.module-title {
+        font-family: var(--display);
+        font-size: clamp(28px, 5vw, 46px);
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: -1px;
+        margin: 6px 0 2px;
+      }
+      .module-sub {
+        font-family: var(--mono);
+        font-style: italic;
+        color: var(--txt-faint);
+        font-size: 15px;
+        letter-spacing: 1px;
+      }
+
+      hr.div {
+        border: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--line-strong),
+          transparent
+        );
+        margin: 44px 0;
+      }
+
+      h3.sub {
+        font-family: var(--display);
+        font-size: clamp(21px, 3.4vw, 28px);
+        font-weight: 600;
+        letter-spacing: -0.4px;
+        margin: 52px 0 18px;
+        scroll-margin-top: 30px;
+      }
+      h3.sub .num {
+        font-family: var(--mono);
+        color: var(--accent);
+        font-size: 0.7em;
+        margin-right: 12px;
+        letter-spacing: 1px;
+      }
+      h4.minor {
+        font-family: var(--display);
+        font-size: 19px;
+        font-weight: 600;
+        margin: 34px 0 10px;
+        color: #fff;
+      }
+      h4.minor .ph {
+        font-family: var(--mono);
+        color: var(--accent);
+        font-size: 0.7em;
+        background: rgba(125, 249, 255, 0.08);
+        border: 1px solid rgba(125, 249, 255, 0.25);
+        padding: 2px 9px;
+        border-radius: 6px;
+        margin-right: 10px;
+      }
+
+      p {
+        margin: 0 0 18px;
+        color: var(--txt);
+      }
+      p.dim {
+        color: var(--txt-dim);
+      }
+      strong {
+        color: #fff;
+        font-weight: 600;
+      }
+      em {
+        color: var(--txt-dim);
+      }
+
+      ol,
+      ul {
+        margin: 0 0 22px;
+        padding-left: 0;
+        list-style: none;
+        counter-reset: li;
+      }
+      ol li,
+      ul li {
+        position: relative;
+        padding: 6px 0 6px 40px;
+        color: var(--txt);
+        border-bottom: 1px solid var(--line);
+      }
+      ol li:last-child,
+      ul li:last-child {
+        border-bottom: 0;
+      }
+      ol li::before {
+        counter-increment: li;
+        content: counter(li, decimal-leading-zero);
+        position: absolute;
+        left: 0;
+        top: 8px;
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      ul li::before {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 18px;
+        width: 16px;
+        height: 1px;
+        background: var(--accent-2);
+      }
+      li strong {
+        color: #fff;
+      }
+
+      /* ---------- BLOCKQUOTE / LAW ---------- */
+      blockquote.law {
+        position: relative;
+        margin: 30px 0;
+        padding: 22px 26px 22px 30px;
+        background: linear-gradient(
+          135deg,
+          rgba(182, 164, 255, 0.08),
+          rgba(125, 249, 255, 0.03)
+        );
+        border: 1px solid var(--line-strong);
+        border-left: 3px solid var(--accent-2);
+        border-radius: 0 14px 14px 0;
+        font-size: 17px;
+        color: #f1f3f8;
+      }
+      blockquote.law .label {
+        display: block;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--accent-2);
+        margin-bottom: 8px;
+      }
+      blockquote.law b {
+        color: #fff;
+      }
+
+      /* ---------- CODE BLOCKS ---------- */
+      .code {
+        margin: 26px 0;
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #080a10;
+        box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.9);
+      }
+      .code-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 16px;
+        background: var(--panel-2);
+        border-bottom: 1px solid var(--line);
+      }
+      .code-bar .lights {
+        display: flex;
+        gap: 7px;
+      }
+      .code-bar .lights span {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        display: block;
+      }
+      .l-r {
+        background: #ff5f57;
+      }
+      .l-y {
+        background: #febc2e;
+      }
+      .l-g {
+        background: #28c840;
+      }
+      .code-bar .fname {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--txt-faint);
+        margin-left: 8px;
+        letter-spacing: 0.5px;
+      }
+      .code-bar .tag {
+        margin-left: auto;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid rgba(125, 249, 255, 0.25);
+        padding: 2px 8px;
+        border-radius: 5px;
+      }
+      pre {
+        margin: 0;
+        padding: 20px 22px;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 13.5px;
+        line-height: 1.7;
+        color: #c9d3e3;
+        tab-size: 2;
+      }
+      pre .c {
+        color: #5a6577;
+      } /* comment */
+      pre .k {
+        color: #b6a4ff;
+      } /* key/keyword */
+      pre .s {
+        color: #7df9ff;
+      } /* string/accent */
+      pre .g {
+        color: #4ade80;
+      } /* good */
+      pre .b {
+        color: #ff5d6c;
+      } /* bad */
+      pre .dim {
+        color: #6b7585;
+      }
+      pre::-webkit-scrollbar {
+        height: 10px;
+      }
+      pre::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+      }
+
+      /* ---------- TABLE ---------- */
+      .table-wrap {
+        margin: 28px 0;
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        overflow: hidden;
+        overflow-x: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 680px;
+        font-size: 15px;
+      }
+      thead th {
+        text-align: left;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--accent);
+        background: var(--panel-2);
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line-strong);
+        vertical-align: top;
+      }
+      tbody td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+        color: var(--txt-dim);
+      }
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.015);
+      }
+      tbody td:first-child {
+        color: #fff;
+        font-weight: 600;
+        font-family: var(--display);
+      }
+      td .bad {
+        color: var(--red);
+      }
+      td .good {
+        color: var(--green);
+      }
+
+      /* ---------- PHASE CARDS ---------- */
+      .phase {
+        margin: 22px 0;
+        border: 1px solid var(--line-strong);
+        border-radius: 14px;
+        background: linear-gradient(
+          180deg,
+          var(--panel),
+          rgba(14, 17, 25, 0.4)
+        );
+        padding: 22px 24px;
+        position: relative;
+      }
+      .phase::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 22px;
+        bottom: 22px;
+        width: 3px;
+        border-radius: 3px;
+        background: var(--accent);
+      }
+      .phase .ph-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .phase .ph-n {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--accent);
+        letter-spacing: 1px;
+      }
+      .phase .ph-t {
+        font-family: var(--display);
+        font-size: 20px;
+        font-weight: 600;
+        color: #fff;
+      }
+      .phase .ph-win {
+        margin-left: auto;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--txt-faint);
+        letter-spacing: 1px;
+        border: 1px solid var(--line);
+        padding: 3px 9px;
+        border-radius: 6px;
+      }
+
+      /* ---------- CALLOUT GRID FOR PRINCIPLE BOX ---------- */
+      .principle {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 26px 0;
+      }
+      .principle div {
+        background: var(--panel);
+        padding: 16px 18px;
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--txt-dim);
+      }
+      .principle div b {
+        color: var(--accent);
+      }
+
+      /* ---------- CHECKLIST ---------- */
+      .checklist {
+        margin: 26px 0;
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 8px 4px;
+      }
+      .checklist .ck-title {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--gold);
+        padding: 12px 18px 6px;
+      }
+      .checklist label {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 11px 18px;
+        border-top: 1px solid var(--line);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .checklist label:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .checklist input {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border: 1.5px solid var(--line-strong);
+        border-radius: 5px;
+        flex: none;
+        position: relative;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .checklist input:checked {
+        background: var(--green);
+        border-color: var(--green);
+      }
+      .checklist input:checked::after {
+        content: "✓";
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #06070b;
+        font-size: 13px;
+        font-weight: 900;
+      }
+      .checklist span {
+        color: var(--txt);
+        font-size: 15px;
+      }
+      .checklist input:checked + span {
+        color: var(--txt-faint);
+        text-decoration: line-through;
+      }
+      .ck-foot {
+        padding: 14px 18px;
+        border-top: 1px solid var(--line);
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--txt-faint);
+        line-height: 1.6;
+      }
+
+      /* ---------- TREE / DIRECTORY ---------- */
+      .tree {
+        font-family: var(--mono);
+        font-size: 13.5px;
+        color: var(--txt-dim);
+        line-height: 1.9;
+      }
+      .tree .d {
+        color: var(--accent);
+      }
+      .tree .cm {
+        color: #5a6577;
+      }
+
+      /* ---------- FOOTER ---------- */
+      footer {
+        margin-top: 90px;
+        border-top: 1px solid var(--line);
+        padding: 50px 0 80px;
+      }
+      footer .law {
+        margin-bottom: 30px;
+      }
+      .foot-meta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 1px;
+        color: var(--txt-faint);
+      }
+      .foot-meta .sig {
+        color: var(--accent);
+      }
+
+      /* ---------- TOC (floating) ---------- */
+      nav.toc {
+        position: fixed;
+        top: 50%;
+        right: 22px;
+        transform: translateY(-50%);
+        z-index: 120;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      nav.toc a {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        border: 1.5px solid var(--line-strong);
+        position: relative;
+        transition: 0.2s;
+      }
+      nav.toc a:hover,
+      nav.toc a.on {
+        border-color: var(--accent);
+        background: var(--accent);
+        box-shadow: 0 0 10px var(--accent);
+      }
+      nav.toc a span {
+        position: absolute;
+        right: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        white-space: nowrap;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        color: var(--txt-dim);
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        padding: 4px 9px;
+        border-radius: 6px;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.2s;
+      }
+      nav.toc a:hover span {
+        opacity: 1;
+      }
+
+      @media (max-width: 720px) {
+        body {
+          font-size: 16px;
+        }
+        nav.toc {
+          display: none;
+        }
+        .principle {
+          grid-template-columns: 1fr;
+        }
+        header.hero {
+          padding: 80px 0 50px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress"></div>
+
+    <nav class="toc" aria-label="Índice">
+      <a href="#m1" data-t="Módulo 1 · Core Engine"><span>01 · Core Engine</span></a>
+      <a href="#m2" data-t="Módulo 2 · Prompts &amp; Scripts"><span>02 · Prompts &amp; Control</span></a>
+      <a href="#m3" data-t="Módulo 3 · Execution Blueprint"><span>03 · Blueprint</span></a>
+    </nav>
+
+    <!-- ============ HERO ============ -->
+    <header class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span> Playbook Digital · Edición de Alta Gama</span>
+        <h1 class="title">AETHERIS</h1>
+        <div class="subtitle">Advanced Frameworks &amp; Automation Architecture</div>
+        <p class="hero-lead">
+          Esto no es un libro sobre <em>productividad</em>. Es un manual de campo
+          para quienes construyen sistemas que otros no entienden y que escalan
+          donde otros colapsan. Si buscas atajos, plantillas recicladas o
+          motivación vacía, <strong>cierra este documento ahora</strong>. Lo que
+          sigue es ingeniería.
+        </p>
+        <div class="axiom0">
+          <b>AXIOMA CERO —</b> Un sistema no se mide por lo que hace cuando todo
+          funciona. Se mide por lo que sobrevive cuando todo se rompe a las 3:00
+          AM bajo carga real.
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- ============ MÓDULO 1 ============ -->
+      <section class="module" id="m1">
+        <div class="module-head">
+          <div class="module-tag">// Módulo 01</div>
+          <h2 class="module-title">La Arquitectura del Sistema</h2>
+          <div class="module-sub">The Core Engine</div>
+        </div>
+
+        <hr class="div" />
+
+        <h3 class="sub" id="s11"><span class="num">1.1</span>El Manifiesto Operativo</h3>
+        <p>
+          La mayoría de los sistemas no fallan por falta de funcionalidad.
+          Fallan por <strong>exceso de complejidad accidental</strong>: capas
+          sobre capas de soluciones rápidas que nadie documentó, dependencias
+          que se acoplaron sin contrato, y decisiones tomadas para "salir del
+          paso" que se convirtieron en cimientos estructurales.
+        </p>
+        <p>El sistema común muere por tres causas, siempre las mismas:</p>
+        <ol>
+          <li>
+            <strong>Acoplamiento implícito —</strong> Dos módulos se conocen sin
+            haberse presentado formalmente. Cuando uno cambia, el otro sangra.
+            Nadie sabe por qué.
+          </li>
+          <li>
+            <strong>Estado no gobernado —</strong> La verdad vive en cinco
+            lugares a la vez. Ninguno coincide. El bug no es reproducible porque
+            el estado es entropía pura.
+          </li>
+          <li>
+            <strong>Optimización prematura disfrazada de pragmatismo —</strong>
+            Se construye para un futuro imaginario que nunca llega, mientras el
+            presente se pudre.
+          </li>
+        </ol>
+
+        <blockquote class="law">
+          <span class="label">Ley de Diseño N.º 1</span>
+          La complejidad que no eliminas hoy, la pagas con <b>interés
+          compuesto</b> mañana. El interés se cobra en horas de debugging, no en
+          dinero.
+        </blockquote>
+
+        <p>
+          La arquitectura <strong>Aetheris</strong> parte de una premisa fría:
+          el código limpio no es estética, es <strong>economía</strong>. Cada
+          línea que escribes es deuda futura. Cada abstracción que añades es un
+          peaje que tú —o quien herede tu sistema— pagará en cada lectura.
+        </p>
+        <p class="dim">
+          La optimización radical no significa "hacerlo rápido". Significa
+          <strong>reducir la superficie de fallo</strong>. Un sistema con menos
+          partes móviles tiene menos formas de romperse. Un flujo de datos
+          unidireccional tiene menos formas de mentir. Un contrato explícito
+          tiene menos formas de ser malinterpretado.
+        </p>
+
+        <div class="principle">
+          <div><b>Determinismo</b> &gt; Velocidad</div>
+          <div><b>Contrato</b> &gt; Conveniencia</div>
+          <div><b>Observabilidad</b> &gt; Optimismo</div>
+          <div><b>Eliminación</b> &gt; Adición</div>
+          <div>Si no puedes <b>medirlo</b>, no lo controlas.</div>
+          <div>Si no puedes <b>reproducirlo</b>, no lo arreglaste.</div>
+        </div>
+
+        <p>
+          La filosofía es brutalmente simple: diseña como si la persona que
+          mantiene tu sistema supiera dónde vives. Porque en seis meses, esa
+          persona serás tú, y no recordarás nada.
+        </p>
+
+        <h3 class="sub" id="s12"><span class="num">1.2</span>Matriz de Flujo Lógico</h3>
+        <p class="dim">
+          La diferencia entre una implementación estándar y la arquitectura
+          Aetheris no es cosmética. Es una decisión de ingeniería que se propaga
+          a través de cada métrica del sistema.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Componente del Sistema</th>
+                <th>Implementación Estándar <span class="bad">(Basura)</span></th>
+                <th>Arquitectura Premium <span class="good">(Aetheris)</span></th>
+                <th>Impacto en Rendimiento / Conversión</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Gestión de Estado</td>
+                <td>Variables globales mutables, estado disperso sin única fuente de verdad.</td>
+                <td>Store unidireccional inmutable con transiciones explícitas y trazables.</td>
+                <td>Bugs de estado caen ~70%. Reproducibilidad total. Onboarding 3× más rápido.</td>
+              </tr>
+              <tr>
+                <td>Flujo de Datos</td>
+                <td>Callbacks anidados, lógica de negocio mezclada con presentación.</td>
+                <td>Pipeline declarativo: <code>input → validación → transformación → efecto</code>.</td>
+                <td>Latencia perceptible reducida. Testabilidad por capa. Cero efectos ocultos.</td>
+              </tr>
+              <tr>
+                <td>Manejo de Errores</td>
+                <td><span class="bad">try/catch</span> genérico que traga excepciones. Logs vacíos.</td>
+                <td>Errores tipados como ciudadanos de primera clase. Telemetría estructurada.</td>
+                <td>MTTR cae drásticamente. Errores accionables, no misterios.</td>
+              </tr>
+              <tr>
+                <td>Capa de Automatización</td>
+                <td>Scripts manuales, copia-pega, procesos que dependen de la memoria humana.</td>
+                <td>Orquestación idempotente: cada tarea re-ejecutable sin duplicar efectos.</td>
+                <td>Costo operativo marginal tiende a cero. Escala sin contratar.</td>
+              </tr>
+              <tr>
+                <td>Diseño de Interfaz</td>
+                <td>Cargas visuales pesadas, jerarquía confusa, fricción en cada interacción.</td>
+                <td>Minimalismo funcional: una acción primaria, jerarquía tipográfica brutal.</td>
+                <td>Conversión sube por menor fricción. Tiempo-a-acción se desploma.</td>
+              </tr>
+              <tr>
+                <td>Observabilidad</td>
+                <td>Logs en consola que nadie lee. Diagnóstico por adivinación.</td>
+                <td>Trazas + métricas + logs correlacionados por ID de transacción.</td>
+                <td>Detección de degradación antes del usuario. Decisiones por datos.</td>
+              </tr>
+              <tr>
+                <td>Modelo de Dependencias</td>
+                <td>Acoplamiento directo a librerías de terceros en toda la base.</td>
+                <td>Inversión de dependencias: el dominio define interfaces.</td>
+                <td>Reemplazo de proveedores sin reescribir. Vida útil multiplicada.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <blockquote class="law">
+          <span class="label">Ley de Diseño N.º 2</span>
+          Cada celda de la columna "Basura" parece más rápida de construir.
+          <b>Lo es —durante exactamente las primeras dos semanas.</b> Después,
+          cada una se convierte en un impuesto permanente sobre tu velocidad.
+        </blockquote>
+      </section>
+
+      <!-- ============ MÓDULO 2 ============ -->
+      <section class="module" id="m2">
+        <div class="module-head">
+          <div class="module-tag">// Módulo 02</div>
+          <h2 class="module-title">Ingeniería de Prompts Avanzada &amp; Scripts de Control</h2>
+          <div class="module-sub">Production-Grade Control Layer</div>
+        </div>
+
+        <hr class="div" />
+
+        <h3 class="sub" id="s21"><span class="num">2.1</span>Meta-Prompts de Producción</h3>
+        <p>
+          Un prompt amateur describe lo que quieres. Un
+          <strong>meta-prompt de producción</strong> define un sistema de
+          restricciones que hace imposible el resultado incorrecto. La
+          diferencia es la misma que entre pedir un favor y firmar un contrato.
+        </p>
+        <p class="dim">
+          El siguiente <em>Master Prompt</em> mantiene consistencia técnica y
+          tonal absoluta: roles, restricciones duras, criterios de salida
+          verificables y un mecanismo de auto-verificación interno.
+        </p>
+
+        <div class="code">
+          <div class="code-bar">
+            <div class="lights"><span class="l-r"></span><span class="l-y"></span><span class="l-g"></span></div>
+            <span class="fname">master_prompt.yaml</span>
+            <span class="tag">Production Grade</span>
+          </div>
+          <pre><span class="c"># ════════════════════════════════════════════════════════════</span>
+<span class="c"># MASTER PROMPT — PRODUCTION GRADE</span>
+<span class="c"># Modo: generación de código + automatización, consistencia estricta</span>
+<span class="c"># ════════════════════════════════════════════════════════════</span>
+
+<span class="k">ROL</span>:
+  <span class="k">identidad</span>: &gt;
+    Eres un ingeniero de sistemas senior con criterio de arquitecto.
+    Operas bajo presión de producción. No adivinas: declaras supuestos.
+    No rellenas: eliminas. Tu output es código de mantenimiento, no demo.
+
+<span class="k">CONTEXTO_DURO</span>:
+  <span class="k">stack</span>: <span class="s">"{{stack_tecnico}}"</span>
+  <span class="k">restricciones_runtime</span>: <span class="s">"{{limites}}"</span>
+  <span class="k">invariantes</span>:
+    - <span class="s">"El estado nunca se muta en sitio; toda transición retorna nuevo estado."</span>
+    - <span class="s">"Todo error es tipado y propagado, jamás silenciado."</span>
+    - <span class="s">"Toda función con efecto secundario lo declara en su firma o nombre."</span>
+
+<span class="k">TAREA</span>:
+  <span class="k">objetivo</span>: <span class="s">"{{descripcion_precisa}}"</span>
+  <span class="k">entradas</span>: <span class="s">"{{contratos_de_entrada}}"</span>
+  <span class="k">salidas</span>: <span class="s">"{{contrato_de_salida}}"</span>
+
+<span class="k">PROTOCOLO_DE_EJECUCION</span>:
+  <span class="k">1_analisis</span>:
+    - Enumera supuestos antes de escribir una línea. Si falta info,
+      decláralo y elige el default más conservador.
+  <span class="k">2_diseno</span>:
+    - Describe el flujo en 3-5 pasos. Identifica el punto único de fallo.
+  <span class="k">3_implementacion</span>:
+    - Nombres del dominio, jamás genéricos. Comentario = PORQUÉ, no QUÉ.
+  <span class="k">4_autoverificacion</span>:
+    - Revisa tu salida contra los INVARIANTES. Corrige antes de entregar.
+    - Genera 2 casos límite y demuestra que el código los maneja.
+
+<span class="k">RESTRICCIONES_DE_SALIDA</span>:
+  <span class="k">prohibido</span>:
+    - <span class="b">Disculpas, preámbulos o relleno conversacional.</span>
+    - <span class="b">Nombres genéricos (data, info, temp, item, foo, manager).</span>
+    - <span class="b">Abstracciones especulativas para casos que no existen.</span>
+  <span class="k">obligatorio</span>:
+    - <span class="g">Código ejecutable y completo. Sin "...resto de la implementación".</span>
+    - <span class="g">Cierre con secciones 'SUPUESTOS' y 'RIESGOS RESIDUALES'.</span></pre>
+        </div>
+
+        <p>
+          El poder de este patrón no está en las palabras. Está en la
+          <strong>estructura de verificación interna</strong>
+          (<code>4_autoverificacion</code>): obligas al modelo a auditarse
+          contra invariantes explícitos antes de entregar. Eso convierte una
+          respuesta probabilística en un proceso con control de calidad.
+        </p>
+
+        <blockquote class="law">
+          <span class="label">Ley de Diseño N.º 3</span>
+          No le pidas al modelo que sea bueno. <b>Construye un sistema donde ser
+          malo sea estructuralmente imposible.</b>
+        </blockquote>
+
+        <h3 class="sub" id="s22"><span class="num">2.2</span>El Algoritmo de Retención</h3>
+        <p>
+          La obsesión del usuario no es magia. Es arquitectura aplicada a la
+          atención. El cerebro humano premia tres cosas con dopamina:
+          <strong>claridad inesperada, tensión sin resolver y progreso
+          visible</strong>. Todo lo demás es ruido. La estructura técnica se
+          descompone en cuatro fases secuenciales.
+        </p>
+
+        <div class="phase">
+          <div class="ph-head">
+            <span class="ph-n">FASE 01</span>
+            <span class="ph-t">El Gancho · Hook</span>
+            <span class="ph-win">Ventana: 0–3 s</span>
+          </div>
+          <p>
+            El primer contacto no vende el contenido: vende la promesa de que
+            continuar vale la pena. Eliminas todo preámbulo y entregas la
+            afirmación más afilada o el dato más contraintuitivo en la primera
+            línea visible. El gancho ataca la
+            <strong>identidad o el dolor</strong>, no el tema.
+          </p>
+          <div class="code">
+            <div class="code-bar">
+              <div class="lights"><span class="l-r"></span><span class="l-y"></span><span class="l-g"></span></div>
+              <span class="fname">patrón_de_gancho</span>
+            </div>
+            <pre><span class="b">✗</span> "En este capítulo vamos a aprender sobre..."   <span class="c">→ fuga inmediata</span>
+<span class="g">✓</span> "El 90% de tu latencia vive en código que
+   escribiste para 'ahorrar tiempo'."           <span class="c">→ tensión + identidad</span></pre>
+          </div>
+        </div>
+
+        <div class="phase">
+          <div class="ph-head">
+            <span class="ph-n">FASE 02</span>
+            <span class="ph-t">La Retención · Hold</span>
+            <span class="ph-win">Ventana: el cuerpo entero</span>
+          </div>
+          <p>
+            Aquí se gana o se pierde la sesión. Se sostiene con
+            <strong>densidad de valor por unidad de tiempo</strong>. En el
+            momento en que un bloque no aporta señal nueva, lo cortas sin piedad.
+          </p>
+          <ul>
+            <li><strong>Loops abiertos —</strong> Anuncias algo y obligas al cerebro a buscar el cierre.</li>
+            <li><strong>Variación de ritmo —</strong> Alternas frases largas y analíticas con golpes cortos. Brutales. Así.</li>
+            <li><strong>Escalada de especificidad —</strong> Empiezas general y aterrizas en detalle ejecutable.</li>
+          </ul>
+        </div>
+
+        <div class="phase">
+          <div class="ph-head">
+            <span class="ph-n">FASE 03</span>
+            <span class="ph-t">El Quiebre · Break</span>
+            <span class="ph-win">El punto de inflexión</span>
+          </div>
+          <p>
+            Es el momento donde reordenas la creencia del usuario. Le muestras
+            que lo que daba por cierto estaba incompleto. Genera el pico
+            emocional más alto: la sensación de "no puedo volver a ver esto como
+            antes".
+          </p>
+          <blockquote class="law" style="margin: 14px 0 0">
+            <span class="label">Mecánica</span>
+            Un quiebre es <b>un contraste violento</b> entre el modelo mental
+            previo y la evidencia que presentas. Antes/Después. Mito/Realidad. El
+            contraste es el detonante. Sin quiebre, el contenido informa. Con
+            quiebre, transforma.
+          </blockquote>
+        </div>
+
+        <div class="phase">
+          <div class="ph-head">
+            <span class="ph-n">FASE 04</span>
+            <span class="ph-t">La Acción · Action</span>
+            <span class="ph-win">El cierre operativo</span>
+          </div>
+          <p>
+            La retención sin acción es entretenimiento. Cierras canalizando toda
+            la tensión acumulada hacia <strong>un único paso siguiente,
+            inequívoco y de baja fricción</strong>. No tres opciones. Una.
+          </p>
+          <div class="code">
+            <div class="code-bar">
+              <div class="lights"><span class="l-r"></span><span class="l-y"></span><span class="l-g"></span></div>
+              <span class="fname">estructura_de_accion</span>
+            </div>
+            <pre>[ Tensión acumulada ]   <span class="c">→ canalizada hacia</span>
+[ 1 acción concreta ]   <span class="c">→ con</span>
+[ Costo de entrada mínimo ]   <span class="c">→ y</span>
+[ Recompensa visible inmediata ]
+
+<span class="b">Múltiples CTAs = cero conversión.</span>
+<span class="dim">La elección es fricción. La fricción mata.</span></pre>
+          </div>
+        </div>
+
+        <blockquote class="law">
+          <span class="label">Ley de Diseño N.º 4</span>
+          La atención es un recurso con tasa de fuga constante. No la "captas"
+          una vez; <b>la defiendes en cada línea</b>. El segundo en que dejas de
+          aportar señal, el usuario ya se fue —solo que su cuerpo tarda un poco
+          en darse cuenta.
+        </blockquote>
+      </section>
+
+      <!-- ============ MÓDULO 3 ============ -->
+      <section class="module" id="m3">
+        <div class="module-head">
+          <div class="module-tag">// Módulo 03</div>
+          <h2 class="module-title">El Plano de Ejecución</h2>
+          <div class="module-sub">The Execution Blueprint</div>
+        </div>
+
+        <hr class="div" />
+
+        <h3 class="sub" id="s31"><span class="num">3.1</span>Implementación en 3 Pasos</h3>
+        <p class="dim">
+          Desplegar la arquitectura Aetheris en un proyecto real no requiere
+          reescribirlo todo. Requiere <strong>secuencia correcta</strong>. El
+          orden importa: cada paso crea las condiciones del siguiente.
+        </p>
+
+        <h4 class="minor"><span class="ph">PASO 01</span>Establecer el Contrato del Dominio</h4>
+        <p>
+          Antes de tocar infraestructura, defines la verdad del sistema: qué
+          entidades existen, qué transiciones son válidas y qué es imposible por
+          diseño. Esto vive en el centro, aislado de frameworks y proveedores.
+        </p>
+        <div class="code">
+          <div class="code-bar">
+            <div class="lights"><span class="l-r"></span><span class="l-y"></span><span class="l-g"></span></div>
+            <span class="fname">estructura/</span>
+          </div>
+          <pre class="tree"><span class="d">dominio/</span>
+  <span class="d">entidades/</span>      <span class="cm"># tipos puros, sin dependencias externas</span>
+  <span class="d">transiciones/</span>   <span class="cm"># funciones puras: estado → estado</span>
+  <span class="d">contratos/</span>      <span class="cm"># interfaces que la infraestructura DEBE cumplir</span></pre>
+        </div>
+        <p>
+          La regla es absoluta: <strong>el dominio no importa nada de
+          fuera</strong>. No conoce tu base de datos, tu framework ni tu
+          proveedor. Si mañana cambias los tres, el dominio no se entera. Esa
+          independencia es lo que da al sistema su vida útil.
+        </p>
+
+        <h4 class="minor"><span class="ph">PASO 02</span>Conectar la Infraestructura por Inversión</h4>
+        <p>
+          La infraestructura (base de datos, APIs externas, colas)
+          <strong>implementa</strong> los contratos que definió el dominio. El
+          flujo de dependencia apunta hacia adentro, nunca hacia afuera.
+        </p>
+        <div class="code">
+          <div class="code-bar">
+            <div class="lights"><span class="l-r"></span><span class="l-y"></span><span class="l-g"></span></div>
+            <span class="fname">flujo_de_dependencia</span>
+          </div>
+          <pre>infraestructura  <span class="s">──implementa──▶</span>  contratos del dominio
+      <span class="dim">│</span>
+      <span class="dim">└─ reemplazable sin tocar la lógica de negocio</span></pre>
+        </div>
+        <p>Esto te da dos superpoderes inmediatos:</p>
+        <ol>
+          <li><strong>Testabilidad sin red —</strong> Sustituyes la infraestructura real por implementaciones falsas. Pruebas la lógica en milisegundos.</li>
+          <li><strong>Reemplazo sin cirugía —</strong> Cambiar de proveedor es cambiar una implementación, no reescribir el sistema.</li>
+        </ol>
+
+        <h4 class="minor"><span class="ph">PASO 03</span>Imponer la Estética Funcional en la Presentación</h4>
+        <p>
+          La interfaz es la última capa y debe ser la más disciplinada.
+          Minimalismo no es "poco". Es
+          <strong>cero elementos sin propósito</strong>.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Principio Visual</th>
+                <th>Regla de Ejecución</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Una acción primaria</td>
+                <td>Cada pantalla tiene exactamente una decisión obvia. Lo demás es secundario y se ve secundario.</td>
+              </tr>
+              <tr>
+                <td>Jerarquía tipográfica</td>
+                <td>Tamaño, peso y espacio comunican importancia. No usas color para gritar; usas estructura.</td>
+              </tr>
+              <tr>
+                <td>Espacio negativo</td>
+                <td>El vacío no es desperdicio. Es lo que hace respirar a lo que importa.</td>
+              </tr>
+              <tr>
+                <td>Latencia percibida</td>
+                <td>Estados de carga inmediatos y transiciones &lt;200&nbsp;ms. La velocidad sentida supera a la real.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="checklist">
+          <div class="ck-title">Checklist de Despliegue Final</div>
+          <label><input type="checkbox" /><span>El dominio no importa infraestructura</span></label>
+          <label><input type="checkbox" /><span>Cada error es tipado y observable</span></label>
+          <label><input type="checkbox" /><span>Toda automatización es idempotente</span></label>
+          <label><input type="checkbox" /><span>Una sola acción primaria por vista</span></label>
+          <label><input type="checkbox" /><span>Métricas y trazas activas antes del lanzamiento</span></label>
+          <label><input type="checkbox" /><span>Un dev nuevo entiende el flujo en &lt;30 min</span></label>
+          <div class="ck-foot">
+            Si una casilla queda vacía, no estás listo. Estás esperando.
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FOOTER ============ -->
+      <footer>
+        <blockquote class="law">
+          <span class="label">Ley de Cierre</span>
+          La arquitectura no se demuestra el día del lanzamiento. Se demuestra
+          el día que algo falla y el sistema te dice <b>exactamente qué, dónde y
+          por qué</b> —sin que tengas que adivinar. Ese día, o lo agradeces, o lo
+          pagas.
+        </blockquote>
+        <div class="foot-meta">
+          <span class="sig">AETHERIS // Advanced Frameworks &amp; Automation Architecture</span>
+          <span>Capítulo Maestro · Edición de Alta Gama</span>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      // Barra de progreso de lectura
+      var bar = document.getElementById("progress");
+      var ticking = false;
+      function onScroll() {
+        var h = document.documentElement;
+        var max = h.scrollHeight - h.clientHeight;
+        var pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+        bar.style.width = pct + "%";
+        ticking = false;
+      }
+      window.addEventListener(
+        "scroll",
+        function () {
+          if (!ticking) {
+            window.requestAnimationFrame(onScroll);
+            ticking = true;
+          }
+        },
+        { passive: true }
+      );
+
+      // Resaltado del índice flotante según sección visible
+      var dots = Array.prototype.slice.call(
+        document.querySelectorAll("nav.toc a")
+      );
+      var sections = dots.map(function (a) {
+        return document.querySelector(a.getAttribute("href"));
+      });
+      var io = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) {
+              var i = sections.indexOf(e.target);
+              dots.forEach(function (d) {
+                d.classList.remove("on");
+              });
+              if (i > -1) dots[i].classList.add("on");
+            }
+          });
+        },
+        { rootMargin: "-45% 0px -45% 0px" }
+      );
+      sections.forEach(function (s) {
+        if (s) io.observe(s);
+      });
+    </script>
+  </body>
+</html>
